@@ -2,7 +2,6 @@
 import { Link } from '@inertiajs/vue3';
 import {
     SidebarGroup,
-    SidebarGroupLabel,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
@@ -14,17 +13,19 @@ defineProps<{
     items: NavItem[];
 }>();
 
-const { isCurrentUrl } = useCurrentUrl();
+// isCurrentOrParentUrl, not isCurrentUrl: Settings points at /settings/profile
+// but must stay active across /settings/security and /settings/appearance.
+const { isCurrentOrParentUrl } = useCurrentUrl();
 </script>
 
 <template>
-    <SidebarGroup class="px-2 py-0">
-        <SidebarGroupLabel>Platform</SidebarGroupLabel>
-        <SidebarMenu>
+    <SidebarGroup class="px-0 py-0">
+        <SidebarMenu class="gap-1">
             <SidebarMenuItem v-for="item in items" :key="item.title">
                 <SidebarMenuButton
                     as-child
-                    :is-active="isCurrentUrl(item.href)"
+                    class="text-title h-11 px-3.5"
+                    :is-active="isCurrentOrParentUrl(item.href)"
                     :tooltip="item.title"
                 >
                     <Link :href="item.href">

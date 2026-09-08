@@ -1,0 +1,185 @@
+/*
+ * CarTrak design system — raw tokens (layer 1).
+ *
+ * SOURCE: docs/design_system/tokens/{colors,typography,spacing,radius,shadows,motion}.css
+ * Copied VERBATIM so `diff` against the design system stays trivial. Do not edit
+ * values here — corrections belong upstream in docs/design_system, and app-level
+ * additions belong in shadcn-bridge.css.
+ *
+ * tokens/fonts.css is deliberately NOT copied: it is a Google Fonts @import, and
+ * the app self-hosts the same families through laravel-vite-plugin (vite.config.ts).
+ *
+ * THREE DELIBERATE RENAMES, each to avoid silently clobbering a Tailwind v4 theme
+ * namespace that shares the prefix:
+ *   --shadow-*  ->  --ct-shadow-*   (Tailwind owns --shadow-* for box-shadow utilities)
+ *   --ease-out  ->  --ease-ct-out   (the DS curve differs from Tailwind's built-in)
+ * Both are re-exposed under their Tailwind names in app.css's @theme block.
+ *
+ * These live in a plain :root (NOT @theme) on purpose: @theme inline emits nothing
+ * to :root, so ported design-system components that reference var(--brand) or
+ * var(--ct-shadow-md) from a <style> block need this layer to resolve against.
+ */
+
+:root {
+    /* ── Brand red (crimson) ── */
+    --red-50: #fbe9ec;
+    --red-100: #f6cdd4;
+    --red-200: #ec9aa8;
+    --red-300: #e06277;
+    --red-400: #d63a54;
+    --red-500: #c1122f; /* primary brand red */
+    --red-600: #a70f29; /* hover */
+    --red-700: #880c21; /* press / deep */
+    --red-800: #6a0a19;
+
+    /* ── Neutrals / ink ── */
+    --ink-900: #1a1a1a; /* primary text, near-black */
+    --ink-800: #2e2e2e;
+    --ink-700: #4a4a4a;
+    --ink-600: #6b6b6b; /* secondary text */
+    --ink-500: #8a8a8a; /* muted / captions */
+    --ink-400: #a9a9a9; /* placeholder / disabled text */
+    --ink-300: #c9c7c8; /* disabled surface */
+    --ink-200: #e5e3e4; /* hairline / borders */
+    --ink-100: #efedee; /* subtle fills */
+
+    /* ── Surfaces ── */
+    --white: #ffffff;
+    --surface-page: #eceaeb; /* light-gray app canvas */
+    --surface-page-tint: #fbe9ec; /* pink outer / device backdrop */
+    --surface-card: #ffffff;
+    --surface-sunken: #f4f2f3;
+
+    /* ── Semantic aliases ── */
+    --brand: var(--red-500);
+    --brand-hover: var(--red-600);
+    --brand-press: var(--red-700);
+    --on-brand: #ffffff;
+
+    --text-strong: var(--ink-900);
+    --text-body: var(--ink-800);
+    --text-muted: var(--ink-600);
+    --text-faint: var(--ink-500);
+    --text-placeholder: var(--ink-400);
+    --text-on-dark: #ffffff;
+    --text-accent: var(--red-500);
+
+    --border-subtle: var(--ink-200);
+    --border-strong: var(--ink-300);
+
+    /* ── Status ── */
+    --success: #1f9d55;
+    --warning: #e0a400;
+    --danger: var(--red-500);
+
+    /* ── Signature gradients ── */
+    --grad-hero: linear-gradient(
+        180deg,
+        #b0112c 0%,
+        #c61733 22%,
+        #e68595 58%,
+        #fbe9ec 84%,
+        #ffffff 100%
+    );
+    --grad-brand: linear-gradient(135deg, #c1122f 0%, #880c21 100%);
+    --grad-score: linear-gradient(90deg, #e06277 0%, #c1122f 55%, #880c21 100%);
+
+    /* ── Families ── */
+    --font-sans:
+        'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system,
+        'Segoe UI', sans-serif;
+    --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+    --font-serif-body: 'Lora', Georgia, serif;
+    --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+
+    /* ── Weights ── */
+    --fw-regular: 400;
+    --fw-medium: 500;
+    --fw-semibold: 600;
+    --fw-bold: 700;
+    --fw-extrabold: 800;
+
+    /* ── Type scale (mobile-first, px) ── */
+    --fs-display: 44px; /* serif hero watermark */
+    --fs-h1: 28px;
+    --fs-h2: 22px;
+    --fs-h3: 18px;
+    --fs-title: 16px;
+    --fs-body: 15px;
+    --fs-sm: 13px;
+    --fs-xs: 11px;
+    --fs-score: 40px; /* big metric number */
+
+    /* ── Line heights ── */
+    --lh-tight: 1.1;
+    --lh-snug: 1.25;
+    --lh-normal: 1.45;
+    --lh-relaxed: 1.6;
+
+    /* ── Letter spacing ── */
+    --ls-tight: -0.02em;
+    --ls-normal: 0;
+    --ls-wide: 0.04em;
+
+    /* ── Semantic type roles (CSS `font:` shorthands) ──
+       Consumed as `font: var(--text-h1)` by ported DS components. Note the DS
+       itself avoids the colour collision by naming the body role --text-body-role. */
+    --text-display: var(--fw-bold) var(--fs-display) / var(--lh-tight)
+        var(--font-serif);
+    --text-h1: var(--fw-bold) var(--fs-h1) / var(--lh-snug) var(--font-sans);
+    --text-h2: var(--fw-bold) var(--fs-h2) / var(--lh-snug) var(--font-sans);
+    --text-h3: var(--fw-semibold) var(--fs-h3) / var(--lh-snug) var(--font-sans);
+    --text-label: var(--fw-semibold) var(--fs-sm) / var(--lh-snug)
+        var(--font-sans);
+    --text-body-role: var(--fw-regular) var(--fs-body) / var(--lh-normal)
+        var(--font-sans);
+
+    /* ── Spacing: 4px base scale ── */
+    --space-0: 0;
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-16: 64px;
+
+    /* ── Layout ── */
+    --screen-pad: 20px; /* mobile side gutter */
+    --card-pad: 18px;
+    --stack-gap: 16px;
+    --tap-min: 44px; /* min touch target */
+    --content-max: 430px; /* mobile design width */
+
+    /* ── Radius ── */
+    --radius-xs: 8px;
+    --radius-sm: 12px;
+    --radius-md: 16px;
+    --radius-lg: 22px; /* cards */
+    --radius-xl: 28px; /* hero / large panels */
+    --radius-pill: 999px;
+    --radius-circle: 50%;
+
+    /* ── Elevation: soft, low-contrast on a light-gray canvas ──
+       RENAMED from --shadow-* (see header). */
+    --ct-shadow-xs: 0 1px 2px rgba(26, 26, 26, 0.05);
+    --ct-shadow-sm: 0 2px 8px rgba(26, 26, 26, 0.06);
+    --ct-shadow-md: 0 8px 24px rgba(26, 26, 26, 0.07); /* default card */
+    --ct-shadow-lg: 0 16px 40px rgba(26, 26, 26, 0.1); /* raised / sheets */
+    --ct-shadow-brand: 0 10px 24px rgba(193, 18, 47, 0.3); /* red FAB / CTA glow */
+    --ct-shadow-inset: inset 0 0 0 1px var(--border-subtle);
+
+    /* ── Motion ── (--ease-out RENAMED to --ease-ct-out; see header) */
+    --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-ct-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    --dur-fast: 120ms;
+    --dur-base: 200ms;
+    --dur-slow: 320ms;
+
+    --press-scale: 0.96;
+}

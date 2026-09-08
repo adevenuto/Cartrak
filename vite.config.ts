@@ -12,8 +12,15 @@ export default defineConfig({
             input: ['resources/css/app.css', 'resources/js/app.ts'],
             refresh: true,
             fonts: [
-                bunny('Instrument Sans', {
-                    weights: [400, 500, 600],
+                bunny('Plus Jakarta Sans', {
+                    weights: [400, 500, 600, 700, 800],
+                    fallbacks: [
+                        'ui-sans-serif',
+                        'system-ui',
+                        '-apple-system',
+                        'Segoe UI',
+                        'sans-serif',
+                    ],
                 }),
             ],
         }),
@@ -44,6 +51,7 @@ export default defineConfig({
     },
     lint: {
         ignorePatterns: [
+            'docs/**',
             'vendor/**',
             'node_modules/**',
             'public/**',
@@ -67,6 +75,7 @@ export default defineConfig({
         singleAttributePerLine: false,
         htmlWhitespaceSensitivity: 'css',
         ignorePatterns: [
+            'docs/**',
             '.github/**',
             'composer.json',
             'resources/js/components/ui/*',

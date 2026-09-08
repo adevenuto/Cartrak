@@ -1,0 +1,103 @@
+/*
+ * Semantic bridge (layer 2) — shadcn's variable names, CarTrak's values.
+ *
+ * This is the file that makes ~20 existing shadcn primitives and every page that
+ * already writes `bg-background` / `text-muted-foreground` / `border-input`
+ * render as CarTrak, with zero component edits. app.css's @theme inline block
+ * maps these onto Tailwind's utility namespaces.
+ *
+ * Layer 1 (ds-tokens.css) must stay separate from this: ported design-system
+ * components read var(--brand) and var(--ct-shadow-md) directly from a <style>
+ * block, and @theme inline emits nothing to :root for them to resolve against.
+ *
+ * Tokens whose name has no --ds- prefix and no shadcn counterpart (--brand-subtle,
+ * --surface-raised) are deliberate app-level additions; see the notes inline.
+ */
+
+:root {
+    /* ── Surfaces ── */
+    --background: var(--surface-page); /* #ECEAEB — canvas, NOT white */
+    --foreground: var(--text-strong);
+    --card: var(--surface-card);
+    --card-foreground: var(--text-strong);
+    --popover: var(--surface-raised);
+    --popover-foreground: var(--text-strong);
+
+    /* App addition: the DS has no popover/sheet surface, only cards. In light
+       mode it is the card white; dark mode lifts it above the card. */
+    --surface-raised: var(--white);
+
+    /* ── Brand ── */
+    --primary: var(--brand);
+    --primary-foreground: var(--on-brand);
+
+    /* ── Quiet fills ──
+       --accent is shadcn's generic HOVER surface: dropdown items, sidebar
+       buttons, ghost buttons, select options, command items. Mapping it to
+       --red-50 (the DS rail's active colour) would turn every hover in the app
+       pink, so it stays neutral and --brand-subtle below carries the brand tint
+       to the places that actually want it. */
+    --secondary: var(--ink-100);
+    --secondary-foreground: var(--text-strong);
+    --muted: var(--surface-sunken);
+    --muted-foreground: var(--text-muted);
+    --accent: var(--ink-100);
+    --accent-foreground: var(--text-strong);
+
+    /* App addition: the deliberate brand-tinted state, applied by hand to the
+       active nav pill. From ui_kits/cartrak-desktop/Sidebar.jsx. */
+    --brand-subtle: var(--red-50);
+    --brand-on-subtle: var(--brand);
+
+    /* ── Chrome ── */
+    --border: var(--border-subtle);
+    --input: var(--border-subtle);
+    --ring: var(--brand); /* DS: fields turn crimson on focus */
+
+    /* KNOWN DESIGN-SYSTEM GAP: the DS defines --danger AS --brand (both are
+       --red-500), so "Delete Account" and "Save" would render identically.
+       --red-700 is a stopgap that at least reads heavier; the DS needs a real
+       error colour. Raised with the user. */
+    --destructive: var(--red-700);
+    --destructive-foreground: var(--on-brand);
+
+    /* Kept alive purely because components/ui/sonner/Sonner.vue reads it.
+       The rest of the radius scale is set directly in app.css's @theme. */
+    --radius: var(--radius-md);
+
+    /* ── Desktop rail (ui_kits/cartrak-desktop/Sidebar.jsx: white, red-50 active) ── */
+    --sidebar: var(--surface-raised);
+    --sidebar-background: var(--surface-raised);
+    --sidebar-foreground: var(--text-muted);
+    --sidebar-primary: var(--brand);
+    --sidebar-primary-foreground: var(--on-brand);
+    --sidebar-accent: var(--brand-subtle);
+    --sidebar-accent-foreground: var(--brand-on-subtle);
+    --sidebar-border: var(--border-subtle);
+    --sidebar-ring: var(--brand);
+
+    /* KNOWN DESIGN-SYSTEM GAP: the DS has one hue plus two status colours, so
+       there is no categorical chart palette. These are invented to keep the
+       shadcn contract satisfied. Revisit in Phase 4 (Insights), where the real
+       need is likely semantic (healthy / soon / overdue), not categorical. */
+    --chart-1: var(--red-500);
+    --chart-2: var(--red-300);
+    --chart-3: var(--ink-700);
+    --chart-4: var(--warning);
+    --chart-5: var(--success);
+}
+
+.dark {
+    --surface-raised: #232223;
+
+    /* Brand TEXT must not be --red-500 on dark (3.11:1, fails AA). Fills stay
+       crimson; anything rendering brand text or icons resolves to --red-300 via
+       --text-accent. See ds-dark.css for the measured contrasts. */
+    --accent-foreground: var(--text-strong);
+    --brand-on-subtle: var(--text-accent);
+    --brand-subtle: #2a1519; /* the --red-50 analogue on a dark canvas */
+    --ring: var(--text-accent);
+    --destructive: var(--red-400);
+    --sidebar-accent-foreground: var(--text-accent);
+    --sidebar-ring: var(--text-accent);
+}

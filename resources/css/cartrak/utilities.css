@@ -1,0 +1,26 @@
+/*
+ * Design-system type roles that Tailwind's font-size namespace cannot express,
+ * because they also switch font FAMILY or weight beyond size+leading+tracking.
+ *
+ * The rest of the DS roles (--text-h1, --text-h2, --text-h3, --text-title …) are
+ * registered in app.css's @theme with matching leading/weight/tracking, so
+ * `class="text-h1"` reproduces the DS --text-h1 role exactly. Only these three
+ * need a real utility.
+ *
+ * @utility (not a plain class) so `vp fmt`'s Tailwind class sorting and any
+ * future IntelliSense treat them as first-class utilities.
+ */
+
+@utility ct-display {
+    font: var(--text-display);
+    letter-spacing: var(--ls-tight);
+}
+
+@utility ct-label {
+    font: var(--text-label);
+}
+
+@utility ct-score {
+    font: var(--fw-extrabold) var(--fs-score) / var(--lh-tight) var(--font-sans);
+    letter-spacing: var(--ls-tight);
+}

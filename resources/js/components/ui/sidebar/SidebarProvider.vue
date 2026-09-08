@@ -19,7 +19,10 @@ const emits = defineEmits<{
   "update:open": [open: boolean]
 }>()
 
-const isMobile = useMediaQuery("(max-width: 768px)")
+// LOCAL PATCH: 767.98px, not 768px. Tailwind's md: breakpoint starts AT 768px,
+// so a max-width:768px query overlaps it by exactly one pixel and the app is
+// left with neither the rail nor the bottom nav at that width.
+const isMobile = useMediaQuery("(max-width: 767.98px)")
 const openMobile = ref(false)
 
 const open = useVModel(props, "open", emits, {
