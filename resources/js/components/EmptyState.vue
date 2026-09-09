@@ -19,7 +19,7 @@ defineProps<{
 
 <template>
     <div
-        class="flex flex-1 flex-col items-center justify-center px-5 py-16 text-center"
+        class="mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center px-5 py-16 text-center"
     >
         <span
             class="bg-brand-subtle text-brand-on-subtle mb-5 flex size-16 items-center justify-center rounded-full"

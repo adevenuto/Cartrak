@@ -2,6 +2,7 @@
 import { Link } from '@inertiajs/vue3';
 import { Plus } from '@lucide/vue';
 import { computed } from 'vue';
+import { Button } from '@/components/ui/button';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { shellNavItems } from '@/lib/shell-nav';
 
@@ -91,22 +92,20 @@ const rightItems = computed(() => shellNavItems.slice(half));
             </div>
 
             <!--
-                Disabled in Phase 0: the quick-add sheet arrives in Phase 1. It is
-                rendered rather than hidden because the raised centre FAB IS the
-                design system's bottom-nav silhouette — removing it would change
-                the shell's identity. opacity-45 is the design system's own
-                disabled treatment.
+                The raised centre FAB is the design system's bottom-nav
+                silhouette. What it does is decided by the page (see
+                composables/useQuickAdd.ts).
             -->
-            <button
+            <Button
                 type="button"
-                aria-disabled="true"
+                size="icon"
                 data-test="bottom-nav-add"
-                class="bg-primary text-primary-foreground border-card ease-standard shadow-brand absolute -top-[22px] left-1/2 flex size-[62px] -translate-x-1/2 cursor-not-allowed items-center justify-center rounded-full border-4 opacity-45 transition-transform duration-[var(--dur-fast)] active:scale-[var(--press-scale)]"
+                class="border-card absolute -top-[22px] left-1/2 size-[62px] -translate-x-1/2 border-4"
                 @click="emit('add')"
             >
                 <span class="sr-only">Add a log entry</span>
                 <Plus class="size-7" />
-            </button>
+            </Button>
         </div>
     </nav>
 </template>

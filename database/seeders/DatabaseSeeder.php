@@ -15,7 +15,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // The service catalogue is reference data the app needs to function,
+        // not sample data — it seeds in every environment.
+        $this->call(ServiceTypeSeeder::class);
 
         User::factory()->create([
             'name' => 'Test User',
