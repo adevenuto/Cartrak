@@ -33,7 +33,8 @@ test('adding a vehicle records its starting odometer as an event', function () {
 
     $vehicle = Vehicle::firstOrFail();
 
-    $response->assertRedirect(route('vehicles.show', $vehicle));
+    // Straight into quick calibrate, so the gauges start from something real.
+    $response->assertRedirect(route('vehicles.calibrate', $vehicle));
 
     expect($vehicle->user_id)->toBe($this->user->id)
         ->and($vehicle->last_odometer)->toBe(47_320)

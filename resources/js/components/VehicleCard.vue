@@ -3,8 +3,9 @@ import { Link } from '@inertiajs/vue3';
 import { Car, ChevronRight } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import { Card, CardContent } from '@/components/ui/card';
+import GaugeRing from '@/components/GaugeRing.vue';
 import VehicleColorDot from '@/components/VehicleColorDot.vue';
-import { formatDate, formatMiles } from '@/lib/format';
+import { formatMiles } from '@/lib/format';
 import { show } from '@/routes/vehicles';
 import type { GarageVehicle } from '@/types/garage';
 
@@ -93,20 +94,41 @@ const specs = computed(() =>
                 </div>
 
                 <div
-                    class="border-border mt-4 flex items-center justify-between border-t pt-3"
+                    class="border-border mt-4 flex items-center gap-3 border-t pt-3"
                 >
-                    <div class="min-w-0">
-                        <p class="text-title">
-                            {{
-                                formatMiles(vehicle.last_odometer) ??
-                                'No reading yet'
-                            }}
+                    <GaugeRing
+                        :progress="vehicle.worst?.progress ?? 0"
+                        :status="vehicle.worst?.status ?? 'uncalibrated'"
+                        :size="48"
+                        :thickness="5"
+                    />
+
+                    <div class="min-w-0 flex-1">
+                        <p v-if="vehicle.worst" class="text-title truncate">
+                            {{ vehicle.worst.name }}
                         </p>
-                        <p
-                            v-if="vehicle.last_odometer_at"
-                            class="text-muted-foreground text-xs"
-                        >
-                            as of {{ formatDate(vehicle.last_odometer_at) }}
+                        <p v-else class="text-title truncate">Not set up yet</p>
+
+                        <p class="text-muted-foreground truncate text-sm">
+                            <template v-if="vehicle.worst">
+                                {{ vehicle.worst.label }}
+                                <span v-if="vehicle.due_count > 1">
+                                    &middot; +{{ vehicle.due_count - 1 }} more
+                                    due
+                                </span>
+                            </template>
+                            <template v-else>
+                                Tell us when things were last done
+                            </template>
+                        </p>
+
+                        <p class="text-muted-foreground truncate text-xs">
+                            {{
+                                formatMiles(vehicle.mileage.projected_odometer)
+                            }}
+                            <span v-if="vehicle.mileage.is_projected"
+                                >approx.</span
+                            >
                         </p>
                     </div>
 

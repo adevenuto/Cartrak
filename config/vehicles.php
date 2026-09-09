@@ -50,6 +50,34 @@ return [
     ],
 
     /*
+     * Mileage estimation. Gauges use a PROJECTED odometer so they keep counting
+     * down between entries; the projection is only as good as how recent the
+     * last real reading is, which is what drives the prompting below.
+     */
+    'mileage' => [
+        // Average over a window rather than the two most recent readings: two
+        // fill-ups a day apart on a road trip would otherwise peg the car at
+        // hundreds of miles a day until the next entry.
+        'window_days' => 90,
+
+        // Below this many readings in the window, fall back to the full history.
+        'min_readings' => 2,
+
+        // Once the projection has run this far past the last real reading, ask
+        // for a confirmation rather than trusting it.
+        'stale_miles' => 500,
+    ],
+
+    /*
+     * Gauge thresholds. Progress is max(time, mileage) against the interval, so
+     * 1.0 means due; past that is overdue.
+     */
+    'gauges' => [
+        'soon' => 0.8,
+        'due' => 1.0,
+    ],
+
+    /*
      * Vehicle photo handling. Uploads are accepted as JPEG/PNG and re-encoded to
      * WebP on the way in, so nothing user-supplied is ever served back verbatim.
      */

@@ -1,0 +1,197 @@
+<?php
+
+use App\Actions\Vehicles\SeedVehicleIntervals;
+use App\Enums\GaugeStatus;
+use App\Enums\IntervalSource;
+use App\Models\ServiceType;
+use App\Models\User;
+use App\Models\Vehicle;
+use App\Models\VehicleInterval;
+use App\Support\VehicleGauges;
+use Database\Seeders\ServiceTypeSeeder;
+use Inertia\Testing\AssertableInertia as Assert;
+
+beforeEach(function () {
+    $this->seed(ServiceTypeSeeder::class);
+    $this->user = User::factory()->create();
+    $this->actingAs($this->user);
+});
+
+test('adding a vehicle seeds its whole schedule', function () {
+    $this->post(route('vehicles.store'), [
+        'make' => 'Toyota', 'model' => 'RAV4', 'odometer' => 1000,
+    ])->assertSessionHasNoErrors();
+
+    $vehicle = Vehicle::firstOrFail();
+
+    // Every catalogue item that can actually come due gets a row.
+    $schedulable = ServiceType::where(fn ($q) => $q
+        ->whereNotNull('default_interval_months')
+        ->orWhereNotNull('default_interval_miles'))->count();
+
+    expect($vehicle->intervals()->count())->toBe(ServiceType::count())
+        ->and($vehicle->intervals()->where('is_active', true)->count())->toBe($schedulable);
+});
+
+test('a freshly added vehicle is uncalibrated, not overdue', function () {
+    $this->post(route('vehicles.store'), [
+        'make' => 'Toyota', 'model' => 'RAV4', 'odometer' => 1000,
+    ]);
+
+    $vehicle = Vehicle::firstOrFail();
+    $gauges = VehicleGauges::for($vehicle);
+
+    expect($gauges->worst())->toBeNull()
+        ->and($gauges->needingAttention())->toHaveCount(0)
+        ->and($gauges->uncalibratedCount())->toBeGreaterThan(0);
+});
+
+test('the calibrate screen offers the four common items', function () {
+    $vehicle = Vehicle::factory()->for($this->user)->create();
+    app(SeedVehicleIntervals::class)->handle($vehicle);
+
+    $this->get(route('vehicles.calibrate', $vehicle))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('vehicles/Calibrate')
+            ->has('intervals', 4)
+            ->where('intervals.0.name', 'Oil & Filter Change')
+            ->has('estimates', 6));
+});
+
+test('calibrating sets a last done date from the rough answer', function () {
+    $vehicle = Vehicle::factory()->for($this->user)->create();
+    app(SeedVehicleIntervals::class)->handle($vehicle);
+
+    $oil = $vehicle->intervals()
+        ->whereHas('serviceType', fn ($q) => $q->where('key', 'oil-change'))
+        ->firstOrFail();
+
+    $this->post(route('vehicles.calibrate.store', $vehicle), [
+        'answers' => [
+            ['interval_id' => $oil->id, 'estimate' => '3_6', 'odometer' => 38_000],
+        ],
+    ])->assertRedirect(route('vehicles.show', $vehicle));
+
+    $oil->refresh();
+
+    expect($oil->last_done_at)->not->toBeNull()
+        ->and($oil->last_done_odometer)->toBe(38_000)
+        ->and($oil->last_done_at->diffInMonths(now()))->toBeGreaterThanOrEqual(3);
+});
+
+test('answering not sure leaves the item uncalibrated rather than inventing a date', function () {
+    $vehicle = Vehicle::factory()->for($this->user)->create();
+    app(SeedVehicleIntervals::class)->handle($vehicle);
+
+    $oil = $vehicle->intervals()->firstOrFail();
+
+    $this->post(route('vehicles.calibrate.store', $vehicle), [
+        'answers' => [['interval_id' => $oil->id, 'estimate' => 'not_sure']],
+    ]);
+
+    expect($oil->refresh()->last_done_at)->toBeNull();
+});
+
+test('changing an interval marks it as a user override', function () {
+    $vehicle = Vehicle::factory()->for($this->user)->create();
+    $interval = VehicleInterval::factory()->for($vehicle)
+        ->for(ServiceType::factory())
+        ->create(['interval_miles' => 5000, 'source' => IntervalSource::Default]);
+
+    $this->patch(route('vehicle-intervals.update', $interval), [
+        'interval_miles' => 7500,
+    ])->assertSessionHasNoErrors();
+
+    $interval->refresh();
+
+    // The override flag is what stops a later default refresh overwriting it.
+    expect($interval->interval_miles)->toBe(7500)
+        ->and($interval->source)->toBe(IntervalSource::UserOverride);
+});
+
+test('setting only a last done date does not mark an override', function () {
+    $vehicle = Vehicle::factory()->for($this->user)->create();
+    $interval = VehicleInterval::factory()->for($vehicle)
+        ->for(ServiceType::factory())
+        ->create(['source' => IntervalSource::Default]);
+
+    $this->patch(route('vehicle-intervals.update', $interval), [
+        'last_done_at' => now()->subMonths(2)->toDateString(),
+        'last_done_odometer' => 30_000,
+    ]);
+
+    expect($interval->refresh()->source)->toBe(IntervalSource::Default);
+});
+
+test('a user cannot calibrate another user vehicle', function () {
+    $other = Vehicle::factory()->create();
+
+    $this->get(route('vehicles.calibrate', $other))->assertForbidden();
+    $this->post(route('vehicles.calibrate.store', $other), ['answers' => []])->assertForbidden();
+});
+
+test('a user cannot change an interval on another user vehicle', function () {
+    $interval = VehicleInterval::factory()->for(Vehicle::factory())
+        ->for(ServiceType::factory())->create();
+
+    $this->patch(route('vehicle-intervals.update', $interval), [
+        'interval_miles' => 9999,
+    ])->assertForbidden();
+});
+
+test('logging a service visit calibrates that gauge', function () {
+    $vehicle = Vehicle::factory()->for($this->user)->create();
+    app(SeedVehicleIntervals::class)->handle($vehicle);
+
+    $oil = ServiceType::where('key', 'oil-change')->firstOrFail();
+
+    $this->post(route('vehicles.events.store', $vehicle), [
+        'type' => 'visit',
+        'odometer' => 50_000,
+        'occurred_on' => now()->toDateString(),
+        'line_items' => [['service_type_id' => $oil->id]],
+    ])->assertSessionHasNoErrors();
+
+    $gauge = VehicleGauges::for($vehicle->fresh())
+        ->gauges
+        ->firstWhere(fn ($g) => $g->interval->service_type_id === $oil->id);
+
+    expect($gauge->status)->not->toBe(GaugeStatus::Uncalibrated)
+        ->and($gauge->interval->last_done_odometer)->toBe(50_000);
+});
+
+test('a gauge can be set and cleared from the edit modal endpoint', function () {
+    $vehicle = Vehicle::factory()->for($this->user)->create();
+    $interval = VehicleInterval::factory()->for($vehicle)
+        ->for(ServiceType::factory())->create();
+
+    $this->patch(route('vehicle-intervals.update', $interval), [
+        'last_done_at' => now()->subMonths(4)->toDateString(),
+        'last_done_odometer' => 38_000,
+    ])->assertSessionHasNoErrors();
+
+    expect($interval->refresh()->last_done_odometer)->toBe(38_000);
+
+    // Clearing the date sends an empty string, which the global
+    // ConvertEmptyStringsToNull middleware turns into a real null.
+    $this->patch(route('vehicle-intervals.update', $interval), [
+        'last_done_at' => '',
+        'last_done_odometer' => '',
+    ])->assertSessionHasNoErrors();
+
+    $interval->refresh();
+
+    expect($interval->last_done_at)->toBeNull()
+        ->and($interval->last_done_odometer)->toBeNull();
+});
+
+test('a future last done date is rejected', function () {
+    $vehicle = Vehicle::factory()->for($this->user)->create();
+    $interval = VehicleInterval::factory()->for($vehicle)
+        ->for(ServiceType::factory())->create();
+
+    $this->patch(route('vehicle-intervals.update', $interval), [
+        'last_done_at' => now()->addWeek()->toDateString(),
+    ])->assertSessionHasErrors('last_done_at');
+});

@@ -1,3 +1,5 @@
+import type { Gauge, MileageSummary } from '@/types/gauges';
+
 /**
  * Shapes the garage and vehicle screens receive from Inertia. These mirror the
  * arrays built in VehicleController and HistoryController.
@@ -16,6 +18,10 @@ export type GarageVehicle = {
     last_odometer: number | null;
     last_odometer_at: string | null;
     events_count: number;
+    worst: Gauge | null;
+    due_count: number;
+    uncalibrated_count: number;
+    mileage: MileageSummary;
 };
 
 export type EventLineItem = {
