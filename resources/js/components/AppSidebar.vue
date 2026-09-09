@@ -43,19 +43,13 @@ const emit = defineEmits<{
         </SidebarContent>
 
         <SidebarFooter class="gap-4 px-3 pb-5">
-            <!--
-                Disabled in Phase 0: vehicle logging arrives with the quick-add
-                sheet in Phase 1. Rendered rather than hidden so the rail matches
-                the design system, and honest about why it does nothing.
-            -->
             <Button
                 class="w-full"
-                aria-disabled="true"
                 data-test="rail-add-vehicle"
                 @click="emit('add')"
             >
                 <Plus />
-                Add Vehicle
+                Log an Entry
             </Button>
             <NavUser />
         </SidebarFooter>

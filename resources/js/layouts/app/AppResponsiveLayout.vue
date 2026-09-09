@@ -6,6 +6,7 @@ import AppShell from '@/components/AppShell.vue';
 import AppSidebar from '@/components/AppSidebar.vue';
 import AppTopBar from '@/components/AppTopBar.vue';
 import { Toaster } from '@/components/ui/sonner';
+import { useQuickAdd } from '@/composables/useQuickAdd';
 import type { BreadcrumbItem } from '@/types';
 
 /*
@@ -28,11 +29,14 @@ withDefaults(defineProps<Props>(), {
     breadcrumbs: () => [],
 });
 
-// Phase 0: logging arrives with the quick-add sheet in Phase 1. Both the rail
-// CTA and the bottom-nav FAB are rendered but disabled, and say so when tapped
-// rather than failing silently or 404ing.
+const { triggerQuickAdd } = useQuickAdd();
+
+// What "add" means depends on the screen, so the page claims the button. Any
+// screen that has not claimed it says so rather than failing silently.
 function onAdd() {
-    toast.info('Vehicle logging arrives in the next phase.');
+    if (!triggerQuickAdd()) {
+        toast.info('Open a vehicle to log an entry.');
+    }
 }
 </script>
 

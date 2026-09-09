@@ -90,6 +90,19 @@
 .dark {
     --surface-raised: #232223;
 
+    /* The ink ramp is NOT inverted for dark mode — ds-dark.css reuses --ink-200
+       and --ink-400 as light TEXT. So any surface token pointing at --ink-100
+       stays #EFEDEE here and leaks a light fill into dark mode. --accent and
+       --secondary both did, which rendered the hovered dropdown option as light
+       text on a light chip. They need explicit dark surfaces.
+
+       --accent is a hover state, so it sits one step ABOVE the surface it
+       covers: popovers and menus are --surface-raised (#232223). #3D3C3D gives
+       the chip 1.44:1 separation from that surface — visible as a hover without
+       shouting — while keeping --text-strong on it at 9.94:1. */
+    --accent: #3d3c3d;
+    --secondary: var(--surface-raised);
+
     /* Brand TEXT must not be --red-500 on dark (3.11:1, fails AA). Fills stay
        crimson; anything rendering brand text or icons resolves to --red-300 via
        --text-accent. See ds-dark.css for the measured contrasts. */

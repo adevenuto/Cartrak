@@ -17,26 +17,34 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 
 const passwordInput = useTemplateRef('passwordInput');
 </script>
 
 <template>
-    <div class="space-y-6">
+    <div class="space-y-4">
+        <Separator />
+
         <Heading
             variant="small"
             title="Delete account"
             description="Delete your account and all of its resources"
         />
-        <div
-            class="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10"
-        >
-            <div class="relative space-y-0.5 text-red-600 dark:text-red-100">
-                <p class="font-medium">Warning</p>
-                <p class="text-sm">
-                    Please proceed with caution, this cannot be undone.
-                </p>
-            </div>
+
+        <!--
+            No tinted warning panel. The old one used raw Tailwind reds
+            (bg-red-50 / text-red-600), which are a different hue from the
+            design system's crimson and read as a clashing third red. The
+            destructive button carries the warning on its own; the copy says
+            plainly what is lost.
+        -->
+        <p class="text-muted-foreground text-sm">
+            This cannot be undone. Your vehicles, logged entries and photos are
+            permanently removed along with your account.
+        </p>
+
+        <div>
             <Dialog>
                 <DialogTrigger as-child>
                     <Button variant="destructive" data-test="delete-user-button"

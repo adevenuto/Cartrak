@@ -20,6 +20,16 @@ export { default as Button } from "./Button.vue"
  * cva cleanly; the behavioural parts shadcn provides (as-child, focus-visible,
  * aria-invalid, svg auto-sizing) are deliberately kept.
  *
+ * Hover on the borderless variants (outline, ghost) is a wash of the FOREGROUND
+ * colour, not a brand tint and not --accent:
+ *   - a --red-50 tint under grey text reads as muddy pink, and puts brand colour
+ *     somewhere the design system reserves for the primary action
+ *   - --accent (#EFEDEE) is only 1.03x against the page canvas (#ECEAEB), i.e.
+ *     invisible on exactly the surface these buttons usually sit on
+ *   - a foreground wash is surface-independent and self-correcting: it darkens
+ *     on light backgrounds and lightens on dark ones, so one rule covers both
+ *     modes and any surface (1.17x light, 1.21x dark)
+ *
  * Two DS-mandated changes worth knowing about:
  *   - every button is fully pill (--radius-pill), not rounded-md
  *   - default height is 44px (--tap-min), up from 36px, which re-rhythms forms
@@ -36,11 +46,11 @@ export const buttonVariants = cva(
         destructive:
           "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
         outline:
-          "border-[1.5px] border-primary bg-transparent text-primary hover:bg-brand-subtle",
+          "border-[1.5px] border-primary bg-transparent text-primary hover:bg-foreground/8",
         secondary:
           "bg-[var(--ink-900)] text-white shadow-sm hover:bg-[var(--ink-800)] dark:bg-[var(--surface-raised)] dark:hover:bg-[var(--ink-800)]",
         ghost:
-          "text-brand-on-subtle hover:bg-brand-subtle",
+          "text-brand-on-subtle hover:bg-foreground/8",
         surface:
           "bg-card text-foreground shadow-sm hover:bg-accent",
         link: "text-brand-on-subtle underline-offset-4 hover:underline",

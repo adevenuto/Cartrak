@@ -2,7 +2,7 @@
 import { Link } from '@inertiajs/vue3';
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { Card, CardContent } from '@/components/ui/card';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
@@ -10,64 +10,74 @@ import { edit as editProfile } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
 import type { NavItem } from '@/types';
 
+/*
+ * Settings shell: a quiet nav card beside a content card.
+ *
+ * Both sit on white, because the design system's whole surface language is
+ * white cards on the grey canvas — form fields floating directly on the canvas
+ * had nothing to belong to.
+ *
+ * The sub-nav is deliberately colourless. The sidebar already marks "Settings"
+ * with the brand pill, so repeating crimson here (a red pill AND red labels on
+ * every item) meant four different reds competing on one screen. Brand colour
+ * now appears once per view: on the primary action.
+ */
 const sidebarNavItems: NavItem[] = [
-    {
-        title: 'Profile',
-        href: editProfile(),
-    },
-    {
-        title: 'Security',
-        href: editSecurity(),
-    },
-    {
-        title: 'Appearance',
-        href: editAppearance(),
-    },
+    { title: 'Profile', href: editProfile() },
+    { title: 'Security', href: editSecurity() },
+    { title: 'Appearance', href: editAppearance() },
 ];
 
 const { isCurrentOrParentUrl } = useCurrentUrl();
 </script>
 
 <template>
-    <div class="px-4 py-6">
+    <div class="mx-auto w-full max-w-6xl px-5 py-6">
         <Heading
             title="Settings"
             description="Manage your profile and account settings"
         />
 
-        <div class="flex flex-col lg:flex-row lg:space-x-12">
-            <aside class="w-full max-w-xl lg:w-48">
-                <nav
-                    class="flex flex-col space-y-1 space-x-0"
-                    aria-label="Settings"
-                >
-                    <Button
-                        v-for="item in sidebarNavItems"
-                        :key="toUrl(item.href)"
-                        variant="ghost"
-                        :class="[
-                            'w-full justify-start',
-                            {
-                                'bg-brand-subtle text-brand-on-subtle':
-                                    isCurrentOrParentUrl(item.href),
-                            },
-                        ]"
-                        as-child
-                    >
-                        <Link :href="item.href">
-                            <component :is="item.icon" class="h-4 w-4" />
-                            {{ item.title }}
-                        </Link>
-                    </Button>
-                </nav>
+        <div class="flex flex-col gap-6 lg:flex-row lg:gap-8">
+            <aside class="lg:w-56 lg:shrink-0">
+                <Card class="py-2">
+                    <CardContent class="px-2">
+                        <nav class="flex flex-col gap-1" aria-label="Settings">
+                            <Button
+                                v-for="item in sidebarNavItems"
+                                :key="toUrl(item.href)"
+                                variant="ghost"
+                                as-child
+                                :class="[
+                                    'w-full justify-start rounded-md',
+                                    isCurrentOrParentUrl(item.href)
+                                        ? 'bg-accent text-foreground'
+                                        : 'text-muted-foreground hover:text-foreground',
+                                ]"
+                            >
+                                <Link
+                                    :href="item.href"
+                                    :aria-current="
+                                        isCurrentOrParentUrl(item.href)
+                                            ? 'page'
+                                            : undefined
+                                    "
+                                >
+                                    <component :is="item.icon" class="size-4" />
+                                    {{ item.title }}
+                                </Link>
+                            </Button>
+                        </nav>
+                    </CardContent>
+                </Card>
             </aside>
 
-            <Separator class="my-6 lg:hidden" />
-
-            <div class="flex-1 md:max-w-2xl">
-                <section class="max-w-xl space-y-12">
-                    <slot />
-                </section>
+            <div class="min-w-0 flex-1">
+                <Card>
+                    <CardContent class="max-w-xl space-y-10">
+                        <slot />
+                    </CardContent>
+                </Card>
             </div>
         </div>
     </div>

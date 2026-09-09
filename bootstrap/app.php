@@ -5,6 +5,7 @@ use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 
@@ -27,4 +28,17 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        // A body over post_max_size leaves $_POST and $_FILES both empty, so no
+        // validation rule ever runs. ValidatePostSize turns that into a 413,
+        // which Inertia would otherwise surface as a raw error modal.
+        $exceptions->render(function (PostTooLargeException $e, Request $request) {
+            if (! $request->hasHeader('X-Inertia')) {
+                return null;
+            }
+
+            return back()->withErrors([
+                'photos' => __('That was too much to upload at once. Try adding fewer photos.'),
+            ]);
+        });
     })->create();
