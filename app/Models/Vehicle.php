@@ -25,6 +25,9 @@ use Illuminate\Support\Carbon;
  * @property string|null $engine
  * @property string|null $color
  * @property array<string, mixed>|null $decoded_specs
+ * @property int|null $epa_mpg_city
+ * @property int|null $epa_mpg_highway
+ * @property int|null $epa_mpg_combined
  * @property int|null $last_odometer
  * @property Carbon|null $last_odometer_at
  * @property string|null $avg_miles_per_day
@@ -34,7 +37,8 @@ use Illuminate\Support\Carbon;
 #[ObservedBy(VehicleObserver::class)]
 #[Fillable([
     'nickname', 'vin', 'year', 'make', 'model', 'trim', 'engine', 'color',
-    'decoded_specs', 'last_odometer', 'last_odometer_at', 'avg_miles_per_day',
+    'decoded_specs', 'epa_mpg_city', 'epa_mpg_highway', 'epa_mpg_combined',
+    'last_odometer', 'last_odometer_at', 'avg_miles_per_day',
 ])]
 class Vehicle extends Model
 {
@@ -76,6 +80,14 @@ class Vehicle extends Model
     public function intervals(): HasMany
     {
         return $this->hasMany(VehicleInterval::class);
+    }
+
+    /**
+     * @return HasMany<Recall, $this>
+     */
+    public function recalls(): HasMany
+    {
+        return $this->hasMany(Recall::class)->orderByDesc('reported_on');
     }
 
     /**

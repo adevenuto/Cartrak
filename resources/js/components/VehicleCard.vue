@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { Car, ChevronRight } from '@lucide/vue';
+import { Car, ChevronRight, ShieldAlert } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import { Card, CardContent } from '@/components/ui/card';
 import GaugeRing from '@/components/GaugeRing.vue';
@@ -55,6 +55,11 @@ const specs = computed(() =>
                 <div class="flex items-start gap-3">
                     <div class="min-w-0 flex-1">
                         <h3 class="text-h3 flex items-center gap-2">
+                            <ShieldAlert
+                                v-if="vehicle.open_recall_count"
+                                class="text-brand-on-subtle size-4 shrink-0"
+                                :aria-label="`${vehicle.open_recall_count} open safety recall`"
+                            />
                             <VehicleColorDot
                                 :color="vehicle.color"
                                 :label="`Paint colour ${vehicle.color}`"

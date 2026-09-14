@@ -11,7 +11,7 @@ import {
     SidebarFooter,
     SidebarHeader,
 } from '@/components/ui/sidebar';
-import { shellNavItems } from '@/lib/shell-nav';
+import { useShellNav } from '@/lib/shell-nav';
 import { garage } from '@/routes';
 
 /*
@@ -28,6 +28,8 @@ import { garage } from '@/routes';
 const emit = defineEmits<{
     add: [];
 }>();
+
+const shellNavItems = useShellNav();
 </script>
 
 <template>

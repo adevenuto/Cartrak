@@ -4,7 +4,7 @@ import { Plus } from '@lucide/vue';
 import { computed } from 'vue';
 import { Button } from '@/components/ui/button';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
-import { shellNavItems } from '@/lib/shell-nav';
+import { useShellNav } from '@/lib/shell-nav';
 
 /*
  * Ported from docs/design_system/components/navigation/BottomNav.jsx.
@@ -32,10 +32,11 @@ const emit = defineEmits<{
 }>();
 
 const { isCurrentOrParentUrl } = useCurrentUrl();
+const shellNavItems = useShellNav();
 
-const half = Math.ceil(shellNavItems.length / 2);
-const leftItems = computed(() => shellNavItems.slice(0, half));
-const rightItems = computed(() => shellNavItems.slice(half));
+const half = computed(() => Math.ceil(shellNavItems.value.length / 2));
+const leftItems = computed(() => shellNavItems.value.slice(0, half.value));
+const rightItems = computed(() => shellNavItems.value.slice(half.value));
 </script>
 
 <template>
@@ -63,7 +64,15 @@ const rightItems = computed(() => shellNavItems.slice(half));
                         isCurrentOrParentUrl(item.href) ? 'page' : undefined
                     "
                 >
-                    <component :is="item.icon" class="size-5" />
+                    <span class="relative">
+                        <component :is="item.icon" class="size-5" />
+                        <span
+                            v-if="item.badge"
+                            class="bg-primary text-primary-foreground absolute -top-1.5 -right-2 flex min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-4 font-bold"
+                        >
+                            {{ item.badge > 9 ? '9+' : item.badge }}
+                        </span>
+                    </span>
                     <span class="text-xs leading-none">{{ item.title }}</span>
                 </Link>
             </div>
@@ -86,7 +95,15 @@ const rightItems = computed(() => shellNavItems.slice(half));
                         isCurrentOrParentUrl(item.href) ? 'page' : undefined
                     "
                 >
-                    <component :is="item.icon" class="size-5" />
+                    <span class="relative">
+                        <component :is="item.icon" class="size-5" />
+                        <span
+                            v-if="item.badge"
+                            class="bg-primary text-primary-foreground absolute -top-1.5 -right-2 flex min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-4 font-bold"
+                        >
+                            {{ item.badge > 9 ? '9+' : item.badge }}
+                        </span>
+                    </span>
                     <span class="text-xs leading-none">{{ item.title }}</span>
                 </Link>
             </div>

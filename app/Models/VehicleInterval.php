@@ -26,12 +26,15 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $last_done_at
  * @property int|null $last_done_odometer
  * @property bool $is_active
+ * @property string|null $last_reminded_status
+ * @property Carbon|null $last_reminded_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
 #[Fillable([
     'service_type_id', 'interval_months', 'interval_miles', 'source',
     'last_done_at', 'last_done_odometer', 'is_active',
+    'last_reminded_status', 'last_reminded_at',
 ])]
 class VehicleInterval extends Model
 {
@@ -46,6 +49,7 @@ class VehicleInterval extends Model
         return [
             'source' => IntervalSource::class,
             'last_done_at' => 'date',
+            'last_reminded_at' => 'datetime',
             'is_active' => 'boolean',
         ];
     }

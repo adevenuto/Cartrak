@@ -41,3 +41,22 @@ export type MileageSummary = {
     is_projected: boolean;
     needs_reading: boolean;
 };
+
+export type VehicleRecall = {
+    id: number;
+    campaign_number: string;
+    component: string | null;
+    summary: string | null;
+    remedy: string | null;
+    reported_on: string | null;
+};
+
+export type FuelBenchmark = {
+    actual: number | null;
+    sticker: number | null;
+    city: number | null;
+    highway: number | null;
+    reading_count: number;
+    /** Percent difference from the sticker; positive is better than rated. */
+    delta_percent: number | null;
+};

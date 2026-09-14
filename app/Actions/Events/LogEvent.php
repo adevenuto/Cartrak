@@ -136,6 +136,11 @@ class LogEvent
         if ($isNewer) {
             $interval->last_done_at = $event->occurred_on;
             $interval->last_done_odometer = $event->odometer;
+
+            // Start the reminder cycle over. Without this, the next time this
+            // item came due we would believe we had already mentioned it.
+            $interval->last_reminded_status = null;
+            $interval->last_reminded_at = null;
         }
 
         $interval->save();

@@ -8,6 +8,9 @@ use App\Actions\Vehicles\SyncVehiclePhotos;
 use App\Enums\EventType;
 use App\Http\Requests\Vehicles\StoreVehicleRequest;
 use App\Http\Requests\Vehicles\UpdateVehicleRequest;
+use App\Jobs\DecodeVehicleVin;
+use App\Jobs\FetchEpaFuelEconomy;
+use App\Models\Recall;
 use App\Models\ServiceType;
 use App\Models\Vehicle;
 use App\Models\VehiclePhoto;
@@ -27,6 +30,7 @@ class VehicleController extends Controller
     {
         $vehicles = $request->user()->vehicles()
             ->with(['primaryPhoto', 'intervals.serviceType'])
+            ->withCount(['recalls' => fn ($q) => $q->whereNull('acknowledged_at')])
             ->withCount('events')
             ->orderBy('created_at')
             ->get()
@@ -54,6 +58,7 @@ class VehicleController extends Controller
                     // brake job.
                     'worst' => $worst === null ? null : VehicleGauges::gaugeToArray($worst),
                     'due_count' => $gauges->needingAttention()->count(),
+                    'open_recall_count' => $vehicle->recalls_count,
                     'uncalibrated_count' => $gauges->uncalibratedCount(),
                     'mileage' => $gauges->mileageToArray(),
                 ];
@@ -97,6 +102,17 @@ class VehicleController extends Controller
         );
 
         $seedIntervals->handle($vehicle);
+
+        // Enrichment, never a dependency: the car is already saved and usable,
+        // and a vPIC outage simply means specs stay as typed.
+        if (filled($vehicle->vin)) {
+            DecodeVehicleVin::dispatch($vehicle);
+        } else {
+            // No VIN to decode, but year/make/model alone are enough for the
+            // EPA sticker lookup.
+            FetchEpaFuelEconomy::dispatch($vehicle);
+        }
+
         $syncPhotos->handle($vehicle, $request->photos(), $request->photoOrder());
 
         $logEvent->handle($vehicle, [
@@ -117,7 +133,7 @@ class VehicleController extends Controller
     {
         Gate::authorize('view', $vehicle);
 
-        $vehicle->load(['primaryPhoto', 'intervals.serviceType']);
+        $vehicle->load(['primaryPhoto', 'intervals.serviceType', 'recalls']);
 
         $gauges = VehicleGauges::for($vehicle);
 
@@ -165,7 +181,18 @@ class VehicleController extends Controller
                 'last_odometer_at' => $vehicle->last_odometer_at?->toDateString(),
             ],
             'events' => $events,
+            'recalls' => $vehicle->recalls
+                ->filter(fn (Recall $recall): bool => $recall->isOpen())
+                ->map(fn (Recall $recall): array => [
+                    'id' => $recall->id,
+                    'campaign_number' => $recall->campaign_number,
+                    'component' => $recall->component,
+                    'summary' => $recall->summary,
+                    'remedy' => $recall->remedy,
+                    'reported_on' => $recall->reported_on?->toDateString(),
+                ])->values(),
             'gauges' => $gauges->toArray(),
+            'fuel' => VehicleGauges::fuelBenchmark($vehicle),
             'mileage' => $gauges->mileageToArray(),
             'serviceTypes' => ServiceType::orderBy('sort_order')->get(['id', 'name', 'category']),
             'expenseCategories' => config('vehicles.expense_categories'),
@@ -205,6 +232,10 @@ class VehicleController extends Controller
                 'photos', 'photo_order', 'removed_photo_ids',
             ])->all(),
         );
+
+        if ($vehicle->wasChanged('vin') && filled($vehicle->vin)) {
+            DecodeVehicleVin::dispatch($vehicle);
+        }
 
         $syncPhotos->handle(
             $vehicle,

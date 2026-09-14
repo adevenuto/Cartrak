@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\GarageSummary;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -42,6 +43,14 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+
+            // A closure so it is only evaluated when a page is actually
+            // rendered, and never for a guest.
+            'garage' => fn (): array => $request->user() === null
+                ? GarageSummary::empty()->toArray()
+                : GarageSummary::for($request->user())->toArray(),
+
+            'unreadNotifications' => fn (): int => $request->user()?->unreadNotifications()->count() ?? 0,
         ];
     }
 }

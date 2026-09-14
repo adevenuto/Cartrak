@@ -116,6 +116,48 @@ readonly class VehicleGauges
     }
 
     /**
+     * Real computed MPG against the EPA sticker.
+     *
+     * The average of full-tank fill-ups we actually measured, compared with the
+     * published figure. Deliberately not shown until there are a few readings:
+     * a single fill-up says more about the pump's cut-off than the car.
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function fuelBenchmark(Vehicle $vehicle): ?array
+    {
+        $sticker = $vehicle->epa_mpg_combined;
+
+        $readings = $vehicle->events()
+            ->whereNotNull('mpg')
+            ->orderByDesc('occurred_on')
+            ->limit(10)
+            ->pluck('mpg')
+            ->map(fn (mixed $mpg): float => (float) $mpg)
+            ->filter(fn (float $mpg): bool => $mpg > 0);
+
+        if ($readings->count() < 3 && $sticker === null) {
+            return null;
+        }
+
+        $actual = $readings->count() >= 3
+            ? round($readings->avg(), 1)
+            : null;
+
+        return [
+            'actual' => $actual,
+            'sticker' => $sticker,
+            'city' => $vehicle->epa_mpg_city,
+            'highway' => $vehicle->epa_mpg_highway,
+            'reading_count' => $readings->count(),
+            // Percent difference from the sticker, positive means better.
+            'delta_percent' => $actual !== null && $sticker !== null && $sticker > 0
+                ? round((($actual - $sticker) / $sticker) * 100)
+                : null,
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function mileageToArray(): array

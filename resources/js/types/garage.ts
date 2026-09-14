@@ -20,6 +20,7 @@ export type GarageVehicle = {
     events_count: number;
     worst: Gauge | null;
     due_count: number;
+    open_recall_count: number;
     uncalibrated_count: number;
     mileage: MileageSummary;
 };

@@ -19,6 +19,12 @@ declare module '@inertiajs/core' {
             name: string;
             auth: Auth;
             sidebarOpen: boolean;
+            garage: {
+                due_count: number;
+                needs_reading_count: number;
+                vehicle_count: number;
+            };
+            unreadNotifications: number;
             [key: string]: unknown;
         };
     }

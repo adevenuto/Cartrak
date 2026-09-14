@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\HistoryController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\VehicleIntervalController;
 use App\Http\Controllers\VehiclePhotoController;
@@ -13,6 +14,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('garage', [VehicleController::class, 'index'])->name('garage');
     Route::get('history', HistoryController::class)->name('history');
     Route::inertia('insights', 'Insights')->name('insights');
+
+    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications');
+    Route::patch('notifications/read-all', [NotificationController::class, 'readAll'])
+        ->name('notifications.read-all');
+    Route::patch('notifications/{notification}', [NotificationController::class, 'update'])
+        ->name('notifications.update');
 
     Route::resource('vehicles', VehicleController::class)->except(['index']);
 

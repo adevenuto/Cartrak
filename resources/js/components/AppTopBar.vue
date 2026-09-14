@@ -1,7 +1,11 @@
 <script setup lang="ts">
+import { Link, usePage } from '@inertiajs/vue3';
+import { Bell } from '@lucide/vue';
 import { computed } from 'vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
+import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { notifications } from '@/routes';
 import type { BreadcrumbItem } from '@/types';
 
 /*
@@ -24,6 +28,9 @@ const props = withDefaults(
 );
 
 const title = computed(() => props.breadcrumbs.at(-1)?.title ?? '');
+
+const page = usePage();
+const unread = computed(() => page.props.unreadNotifications ?? 0);
 </script>
 
 <template>
@@ -44,5 +51,26 @@ const title = computed(() => props.breadcrumbs.at(-1)?.title ?? '');
                 />
             </template>
         </div>
+
+        <!-- The in-app record of everything we've sent, always reachable. -->
+        <Button
+            as-child
+            variant="ghost"
+            size="icon-tap"
+            class="text-muted-foreground hover:text-foreground relative ml-auto"
+        >
+            <Link :href="notifications()">
+                <Bell />
+                <span
+                    v-if="unread"
+                    class="bg-primary text-primary-foreground absolute top-1.5 right-1.5 flex min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-4 font-bold"
+                >
+                    {{ unread > 9 ? '9+' : unread }}
+                </span>
+                <span class="sr-only">
+                    Notifications{{ unread ? `, ${unread} unread` : '' }}
+                </span>
+            </Link>
+        </Button>
     </header>
 </template>

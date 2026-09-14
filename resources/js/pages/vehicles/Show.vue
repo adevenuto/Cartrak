@@ -5,6 +5,8 @@ import { ref } from 'vue';
 import EmptyState from '@/components/EmptyState.vue';
 import EventRow from '@/components/EventRow.vue';
 import GaugeCluster from '@/components/GaugeCluster.vue';
+import FuelBenchmarkCard from '@/components/FuelBenchmark.vue';
+import RecallAlert from '@/components/RecallAlert.vue';
 import GaugeEditDialog from '@/components/GaugeEditDialog.vue';
 import GaugeRing from '@/components/GaugeRing.vue';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,7 +17,12 @@ import { useQuickAdd } from '@/composables/useQuickAdd';
 import { formatDate, formatMiles } from '@/lib/format';
 import { garage } from '@/routes';
 import { calibrate, edit } from '@/routes/vehicles';
-import type { Gauge, MileageSummary } from '@/types/gauges';
+import type {
+    FuelBenchmark,
+    Gauge,
+    MileageSummary,
+    VehicleRecall,
+} from '@/types/gauges';
 import type {
     ServiceTypeOption,
     VehicleDetail,
@@ -26,6 +33,8 @@ const props = defineProps<{
     vehicle: VehicleDetail;
     events: VehicleEvent[];
     gauges: Gauge[];
+    recalls: VehicleRecall[];
+    fuel: FuelBenchmark | null;
     mileage: MileageSummary;
     serviceTypes: ServiceTypeOption[];
     expenseCategories: string[];
@@ -38,7 +47,20 @@ defineOptions({
 });
 
 const photoFailed = ref(false);
-const quickAddOpen = ref(false);
+/*
+ * Reminder emails deep-link here as ?log=visit, so the loop is
+ * "Oil due -> tap -> Save" rather than landing someone on a page where they
+ * still have to find the right button.
+ */
+const deepLinkLane = new URLSearchParams(window.location.search).get('log');
+const validLanes = ['fuel', 'visit', 'expense', 'odometer'] as const;
+type Lane = (typeof validLanes)[number];
+
+const initialLane = validLanes.includes(deepLinkLane as Lane)
+    ? (deepLinkLane as Lane)
+    : undefined;
+
+const quickAddOpen = ref(initialLane !== undefined);
 const gaugeOpen = ref(false);
 const selectedGauge = ref<Gauge | null>(null);
 
@@ -163,6 +185,8 @@ const specs = [
             </p>
         </div>
 
+        <RecallAlert :recalls="recalls" />
+
         <section class="flex flex-col gap-3">
             <h2 class="text-h2">Gauges</h2>
 
@@ -193,6 +217,8 @@ const specs = [
 
             <GaugeCluster v-else :gauges="gauges" @select="editGauge" />
         </section>
+
+        <FuelBenchmarkCard v-if="fuel" :fuel="fuel" />
 
         <div class="flex items-center justify-between">
             <h2 class="text-h2">History</h2>
@@ -225,5 +251,6 @@ const specs = [
         :vehicles="[vehicle]"
         :service-types="serviceTypes"
         :expense-categories="expenseCategories"
+        :initial-lane="initialLane"
     />
 </template>

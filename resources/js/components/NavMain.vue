@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
+import { Badge } from '@/components/ui/badge';
 import {
     SidebarGroup,
     SidebarMenu,
@@ -30,7 +31,10 @@ const { isCurrentOrParentUrl } = useCurrentUrl();
                 >
                     <Link :href="item.href">
                         <component :is="item.icon" />
-                        <span>{{ item.title }}</span>
+                        <span class="flex-1">{{ item.title }}</span>
+                        <Badge v-if="item.badge" class="shrink-0">
+                            {{ item.badge }}
+                        </Badge>
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>

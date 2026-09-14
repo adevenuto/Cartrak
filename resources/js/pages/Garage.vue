@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Plus, Warehouse } from '@lucide/vue';
-import { ref } from 'vue';
+import { Gauge, Plus, Warehouse } from '@lucide/vue';
+import { computed, ref } from 'vue';
 import EmptyState from '@/components/EmptyState.vue';
 import QuickAddSheet from '@/components/QuickAddSheet.vue';
 import VehicleCard from '@/components/VehicleCard.vue';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { useQuickAdd } from '@/composables/useQuickAdd';
 import { garage } from '@/routes';
-import { create } from '@/routes/vehicles';
+import { create, show } from '@/routes/vehicles';
 import type { GarageVehicle, ServiceTypeOption } from '@/types/garage';
 
 const props = defineProps<{
@@ -22,6 +23,10 @@ defineOptions({
         breadcrumbs: [{ title: 'Garage', href: garage() }],
     },
 });
+
+const staleVehicles = computed(() =>
+    props.vehicles.filter((vehicle) => vehicle.mileage.needs_reading),
+);
 
 const quickAddOpen = ref(false);
 const { claimQuickAdd } = useQuickAdd();
@@ -62,6 +67,35 @@ claimQuickAdd(onQuickAdd);
         v-else
         class="mx-auto flex w-full max-w-6xl flex-col gap-4 px-5 pb-4 md:px-(--card-pad)"
     >
+        <!--
+            The odometer prompt used to live only on a vehicle's own page, so a
+            car you never opened was never asked about — and the projection
+            behind every one of its gauges quietly drifted.
+        -->
+        <Card v-if="staleVehicles.length" class="border-0">
+            <CardContent class="flex flex-wrap items-center gap-3">
+                <Gauge class="text-brand-on-subtle size-5 shrink-0" />
+                <p class="text-body min-w-0 flex-1">
+                    <template v-if="staleVehicles.length === 1">
+                        It's been a while since
+                        {{ staleVehicles[0].name }} had a mileage update.
+                    </template>
+                    <template v-else>
+                        {{ staleVehicles.length }} vehicles need a mileage
+                        update to keep their gauges accurate.
+                    </template>
+                </p>
+                <Button
+                    v-if="staleVehicles.length === 1"
+                    as-child
+                    size="sm"
+                    class="shrink-0"
+                >
+                    <Link :href="show(staleVehicles[0].id)">Update</Link>
+                </Button>
+            </CardContent>
+        </Card>
+
         <div class="flex items-center justify-between">
             <p class="text-muted-foreground text-sm">
                 {{ vehicles.length }}

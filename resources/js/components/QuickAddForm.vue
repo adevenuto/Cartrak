@@ -47,17 +47,24 @@ import type { QuickAddVehicle, ServiceTypeOption } from '@/types/garage';
  */
 type Lane = 'fuel' | 'visit' | 'expense' | 'odometer';
 
-const props = defineProps<{
-    vehicles: QuickAddVehicle[];
-    serviceTypes: ServiceTypeOption[];
-    expenseCategories: string[];
-}>();
+const props = withDefaults(
+    defineProps<{
+        vehicles: QuickAddVehicle[];
+        serviceTypes: ServiceTypeOption[];
+        expenseCategories: string[];
+        /** Which lane to open on — used by reminder deep links. */
+        initialLane?: Lane;
+    }>(),
+    {
+        initialLane: 'fuel',
+    },
+);
 
 const emit = defineEmits<{
     saved: [];
 }>();
 
-const lane = ref<Lane>('fuel');
+const lane = ref<Lane>(props.initialLane);
 const showDetails = ref(false);
 const selectedId = ref<string>(String(props.vehicles[0]?.id ?? ''));
 const lineItems = ref<{ service_type_id: string; cost: string }[]>([
