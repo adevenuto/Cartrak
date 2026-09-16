@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Enums\BindingAxis;
 use App\Enums\GaugeStatus;
 use App\Models\Vehicle;
 use App\Models\VehicleInterval;
@@ -104,6 +105,9 @@ readonly class VehicleGauges
             'axis' => $gauge->axis->value,
             'progress' => $gauge->displayProgress(),
             'raw_progress' => $gauge->progress,
+            // Uncapped on purpose: 112% is a real reading and must print as 112.
+            'percent' => (int) round($gauge->progress * 100),
+            'basis' => self::basisFor($gauge),
             'label' => $gauge->label(),
             'miles_remaining' => $gauge->milesRemaining,
             'days_remaining' => $gauge->daysRemaining,
@@ -113,6 +117,33 @@ readonly class VehicleGauges
             'last_done_odometer' => $gauge->interval->last_done_odometer,
             'source' => $gauge->interval->source->value,
         ];
+    }
+
+    /**
+     * What the gauge is measured against, as the card eyebrow shows it:
+     * "5,000 mi" or "12 mo".
+     *
+     * Reads the axis that actually binds, so a gauge limited by time does not
+     * advertise a mileage interval it will never reach first.
+     */
+    private static function basisFor(IntervalProgress $gauge): ?string
+    {
+        $interval = $gauge->interval;
+
+        $miles = $interval->interval_miles === null
+            ? null
+            : number_format($interval->interval_miles).' mi';
+
+        $months = $interval->interval_months === null
+            ? null
+            : $interval->interval_months.' mo';
+
+        return match ($gauge->axis) {
+            BindingAxis::Mileage => $miles,
+            BindingAxis::Time => $months,
+            // Uncalibrated: nothing binds yet, so show whatever is configured.
+            BindingAxis::None => $miles ?? $months,
+        };
     }
 
     /**

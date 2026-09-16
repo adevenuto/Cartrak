@@ -25,7 +25,12 @@ use Illuminate\Support\Facades\Date;
 readonly class IntervalProgress
 {
     /** Average days in a month, so 6 months is a real span rather than 180. */
-    private const DAYS_PER_MONTH = 30.44;
+    /**
+     * The average Gregorian month. Public because the header's "avg / month"
+     * cell converts a per-day rate with it, and two copies of this number would
+     * drift the moment one was tuned.
+     */
+    public const DAYS_PER_MONTH = 30.44;
 
     private function __construct(
         public VehicleInterval $interval,
