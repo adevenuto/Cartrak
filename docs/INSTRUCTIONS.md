@@ -14,11 +14,18 @@ Gate everything with `composer ci:check` — Pest, PHPStan level 7, Pint, `vp ch
 
 ### What the redesign covers
 Tokens, fonts, the navy shell, the blueprint frame, the 240° gauge dial, the vehicle
-detail screen, and the landing page. **Garage, History, Insights, Settings and auth
-are deliberately half-migrated** — square and set in Barlow, but still carrying old
-crimson accents. That was an accepted trade: the radius and shadow scales were zeroed
-globally so the whole app went square on day one, leaving the class cleanup as
-per-screen debt.
+detail screen, the landing page, and the garage, history, settings and notifications
+screens.
+
+**Insights and the auth screens are the last two unmigrated areas.** Insights is the
+harder of the two: it is not in the design drop at all, and §2 forbids tinting charts,
+so its palette is a real decision (likely semantic steel/amber/rust rather than
+categorical) rather than a transcription.
+
+Remaining cosmetic debt: a handful of `components/ui/*` primitives still write
+`rounded-full`. They already render square via the utilities-layer override in
+`app.css`, so this is tidying, not a defect — pay it off per primitive when one is
+next touched.
 
 ### Known gaps (none are bugs)
 - No **pinning UI**. `position` and `is_pinned` exist, are backfilled and render, but
@@ -29,10 +36,11 @@ per-screen debt.
 - The landing **hero has no photo**. The design calls for a garage/engine-bay shot and
   no such asset exists in the drop, so the frame carries a large dial instead. Swapping
   in an `<img>` is a one-line change; see the comment in `Welcome.vue`.
-- Local dev serves at **`cartrak.test`** (Valet uses the directory name) while `.env`
-  says `ignitionindex.test`. Either `valet link ignitionindex` or point `APP_URL` back,
-  then `php artisan config:clear` — otherwise reminder emails deep-link to a dead host.
-  `DB_DATABASE=cartrak` is fine as-is.
+- **Local host.** Valet derives the domain from the directory name. Once the folder is
+  renamed to `ignitionindex`, `ignitionindex.test` resolves and `.env`'s `APP_URL`
+  becomes correct on its own; run `php artisan config:clear` afterwards. Until then the
+  app answers on `cartrak.test` and reminder emails would deep-link to a dead host.
+  `DB_DATABASE=cartrak` is fine left alone — renaming it buys nothing visible.
 
 ## Design system (authoritative)
 `AGENTS.md` is binding and points at `docs/design_system/IGNITION-INDEX-DESIGN-SYSTEM.md`.
@@ -198,12 +206,19 @@ parallel is the **design migration**: `concept_redesign` rebuilt the shell, the 
 dial, the vehicle detail screen and the landing page, and the remaining screens —
 Garage, History, Insights, Settings, auth — still carry old accents.
 
-Two sensible next moves, in either order:
-1. **Migrate the remaining screens** to the design system, screen by screen. Grep for
-   `brand-`, `success`, `warning`, `rounded-full`, `shadow-` and raw Tailwind colours
-   in each file as you go — dead tokens fail silently.
-2. **Build the pinning UI** so the three pinned gauges can be chosen, which is the one
-   piece of the gauge wall the schema supports but the interface does not expose.
+Three sensible next moves, in any order:
+1. **Build the pinning UI** so the three pinned gauges can be chosen — the one piece of
+   the gauge wall the schema supports but the interface does not expose.
+2. **Migrate the auth screens**, which should be as mechanical as garage and settings
+   were. Grep each file for `rounded-full`, `max-w-6xl`, `brand-`, `success`, `warning`
+   and raw Tailwind colours as you go — dead tokens fail silently.
+3. **Start Phase 4 (Insights)**, designing before building for the reason above.
+
+A useful pattern from the migrations already done: most screens turned out to be ~80%
+migrated already, because zeroing the radius and shadow scales and mapping the tokens
+did the heavy lifting globally. What is left on any given screen is usually just the
+places asking for a shape the system does not have — circles, pills — plus type roles
+and width caps. Audit with a grep before assuming a screen needs real work.
 
 Phase 4 is worth designing before building: the Insights surface is not in the design
 drop, so it will need decisions rather than transcription — and §2 forbids tinting
