@@ -143,7 +143,7 @@ const specs = [
             </div>
 
             <div class="border-border mt-4 border-t pt-4">
-                <p class="ct-score">
+                <p class="font-display text-metric">
                     {{ formatMiles(mileage.projected_odometer) ?? '—' }}
                 </p>
                 <p class="text-muted-foreground text-sm">

@@ -49,7 +49,7 @@ const { isCurrentOrParentUrl } = useCurrentUrl();
                                 :class="[
                                     'w-full justify-start rounded-md',
                                     isCurrentOrParentUrl(item.href)
-                                        ? 'bg-accent text-foreground'
+                                        ? 'bg-hover-surface text-foreground'
                                         : 'text-muted-foreground hover:text-foreground',
                                 ]"
                             >

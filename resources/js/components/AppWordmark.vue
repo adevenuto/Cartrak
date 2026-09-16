@@ -27,7 +27,7 @@ withDefaults(
         </span>
         <span
             v-if="showName"
-            class="text-foreground text-[20px] leading-none font-extrabold tracking-[var(--ls-tight)]"
+            class="text-foreground text-[20px] leading-none font-extrabold tracking-[0.02em]"
         >
             CarTrak
         </span>

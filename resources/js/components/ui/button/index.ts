@@ -4,56 +4,52 @@ import { cva } from "class-variance-authority"
 export { default as Button } from "./Button.vue"
 
 /*
- * LOCAL PATCH — restyled to the CarTrak design system (docs/design_system).
+ * LOCAL PATCH — restyled to the Ignition Index design system.
  *
  * Every shadcn variant NAME is preserved so no consuming page changes; each maps
- * onto a design-system variant instead:
+ * onto an Industry .btn variant instead (styles.css lines 140-162):
  *
- *   default   -> DS "primary"   (crimson fill + brand glow)
- *   outline   -> DS "secondary" (crimson outline)
- *   ghost     -> DS "ghost"
- *   secondary -> DS "dark"      (ink fill)
- *   surface   -> DS IconButton tone="light"  (added)
- *   link      -> no DS equivalent; left as shadcn shipped it
+ *   default   -> .btn-primary    (steel fill, paper ink)
+ *   outline   -> .btn-secondary  (hairline border, ink wash on hover)
+ *   secondary -> .btn-secondary  (same; the ink-filled variant is gone)
+ *   ghost     -> .btn-ghost      (steel text, steel wash on hover)
+ *   surface   -> card-filled icon button (added; no Industry equivalent)
+ *   destructive -> outlined rust (see below)
+ *   link      -> no Industry equivalent; left as shadcn shipped it
  *
- * The DS spec is entirely visual (pill, crimson, glow, press-scale), so it fits
- * cva cleanly; the behavioural parts shadcn provides (as-child, focus-visible,
- * aria-invalid, svg auto-sizing) are deliberately kept.
+ * Buttons are set in the HEADING face at 14px/600, per Industry's .btn rule —
+ * condensed uppercase is for chrome, and a button is chrome.
  *
- * Hover on the borderless variants (outline, ghost) is a wash of the FOREGROUND
- * colour, not a brand tint and not --accent:
- *   - a --red-50 tint under grey text reads as muddy pink, and puts brand colour
- *     somewhere the design system reserves for the primary action
- *   - --accent (#EFEDEE) is only 1.03x against the page canvas (#ECEAEB), i.e.
- *     invisible on exactly the surface these buttons usually sit on
- *   - a foreground wash is surface-independent and self-correcting: it darkens
- *     on light backgrounds and lightens on dark ones, so one rule covers both
- *     modes and any surface (1.17x light, 1.21x dark)
+ * Geometry per design doc section 4: square, hairline, no shadow, and no press
+ * scale. The previous system squished on :active; nothing in a blueprint system
+ * deforms, so the press feedback is a background step instead, which is what
+ * Industry's own .btn:active does.
  *
- * Two DS-mandated changes worth knowing about:
- *   - every button is fully pill (--radius-pill), not rounded-md
- *   - default height is 44px (--tap-min), up from 36px, which re-rhythms forms
+ * destructive is an OUTLINE rather than a fill on purpose. Rust is a service
+ * status colour (section 2), and filling a button with it puts a status colour
+ * somewhere that is not a service state. Outlined, it still reads as danger
+ * without claiming a large area.
  *
  * A future `npx shadcn-vue add button` will revert this file.
  */
 export const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-title font-bold transition-all duration-[var(--dur-fast)] ease-standard active:scale-[var(--press-scale)] disabled:pointer-events-none disabled:opacity-45 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 aria-invalid:border-destructive",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap border font-display text-[14px]/[1.2] font-semibold transition-colors duration-[var(--dur-fast)] ease-standard disabled:pointer-events-none disabled:opacity-45 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 aria-invalid:border-destructive",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-brand hover:bg-[var(--brand-hover)] active:bg-[var(--brand-press)]",
+          "border-accent bg-primary text-primary-foreground hover:bg-accent-600 active:bg-accent-700",
         destructive:
-          "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20",
+          "border-destructive bg-transparent text-destructive hover:bg-destructive/10 active:bg-destructive/18 focus-visible:ring-destructive/20",
         outline:
-          "border-[1.5px] border-primary bg-transparent text-primary hover:bg-foreground/8",
+          "border-border bg-transparent text-foreground hover:bg-hover-surface active:bg-foreground/14",
         secondary:
-          "bg-[var(--ink-900)] text-white shadow-sm hover:bg-[var(--ink-800)]",
+          "border-border bg-transparent text-foreground hover:bg-hover-surface active:bg-foreground/14",
         ghost:
-          "text-brand-on-subtle hover:bg-foreground/8",
+          "border-transparent px-(--space-1) text-accent hover:bg-accent/10 active:bg-accent/18",
         surface:
-          "bg-card text-foreground shadow-sm hover:bg-accent",
-        link: "text-brand-on-subtle underline-offset-4 hover:underline",
+          "border-border bg-card text-foreground hover:bg-hover-surface",
+        link: "border-transparent text-accent underline-offset-4 hover:underline",
       },
       size: {
         "default": "h-11 px-[22px] has-[>svg]:px-4",

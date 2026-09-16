@@ -35,7 +35,7 @@ const uncalibrated = computed(() =>
         <li v-for="gauge in gauges" :key="gauge.id">
             <button
                 type="button"
-                class="ease-standard block h-full w-full text-left transition-transform duration-[var(--dur-fast)] active:scale-[var(--press-scale)]"
+                class="ease-standard block h-full w-full text-left transition-colors duration-[var(--dur-fast)]"
                 :aria-label="`${gauge.name}, ${gauge.label}. Adjust.`"
                 @click="emit('select', gauge)"
             >

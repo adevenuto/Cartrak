@@ -1,0 +1,29 @@
+/*
+ * Layer 2c — the two type roles Tailwind's font-size namespace cannot express.
+ *
+ * The namespace carries size, leading, weight and tracking, so most of the doc's
+ * §3 roles are registered in app.css's @theme and used as `text-h1`, `text-body`
+ * and so on. These two also switch CASE and COLOUR, which a font-size key cannot
+ * do — hence real utilities.
+ *
+ * @utility (not a plain class) so `vp fmt`'s Tailwind class sorting and any
+ * future IntelliSense treat them as first-class.
+ */
+
+/* §3: body 700, 10px, letter-spacing .14em, uppercase, --color-neutral-700. */
+@utility ii-eyebrow {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-neutral-700);
+}
+
+/* §3: body 400, 11–13px, --color-neutral-700. */
+@utility ii-metadata {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--color-neutral-700);
+}

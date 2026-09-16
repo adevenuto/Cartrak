@@ -1,0 +1,67 @@
+/*
+ * Layer 2 — shadcn's variable names, Ignition Index's values.
+ *
+ * This is what makes the existing shadcn primitives and every page already
+ * writing `bg-background` / `text-muted-foreground` / `border-input` render as
+ * Ignition Index with no component edits.
+ *
+ * Layer 1 must stay separate from this: components read var(--color-accent) and
+ * var(--space-4) straight from a <style> block or an inline style, and
+ * @theme inline emits nothing to :root for them to resolve against.
+ *
+ * There is no .dark block. The shell is permanent navy chrome around a light
+ * stage, so there is no second palette.
+ *
+ * NOTE ON `accent`: shadcn's --accent is its GENERIC HOVER SURFACE (dropdown
+ * items, menu items, ghost buttons), while Industry's --color-accent is the
+ * BRAND — steel. Those are two different things under one name, and mapping
+ * both into Tailwind's `accent` namespace makes one of them silently win. So
+ * `accent` here means steel, the brand, and the hover surface is renamed to
+ * --hover-surface. See the matching note in app.css.
+ */
+
+:root {
+    /* ── Surfaces ── */
+    --background: var(--color-bg); /* #f2f2f3 paper, NOT white */
+    --foreground: var(--color-text);
+    --card: var(--color-neutral-100);
+    --card-foreground: var(--color-text);
+    --popover: var(--color-neutral-100);
+    --popover-foreground: var(--color-text);
+
+    /* ── Brand ── */
+    --primary: var(--color-accent);
+    --primary-foreground: var(
+        --color-bg
+    ); /* paper on steel, per .btn-primary */
+
+    /* ── Quiet fills ──
+       .btn-secondary in the Industry sheet is outline-only: a hairline border
+       and no fill. Mapping --secondary to a tinted block would reintroduce the
+       filled chips the geometry rules remove. */
+    --secondary: transparent;
+    --secondary-foreground: var(--color-text);
+    --muted: var(--color-surface); /* #e9e9ea — the .input ground */
+    --muted-foreground: var(--color-neutral-700); /* the floor for 10–13px */
+
+    /* shadcn's generic hover surface, renamed so it cannot collide with the
+       brand. Deliberately a tint of ink rather than a tint of steel: it covers
+       menu rows and ghost buttons, where steel would read as a selection. */
+    --hover-surface: color-mix(in srgb, var(--color-text) 7%, transparent);
+    --hover-surface-foreground: var(--color-text);
+
+    /* ── Chrome ── */
+    --border: var(--color-divider);
+    --input: var(--color-divider);
+    --ring: var(--color-accent);
+
+    /* Rust is the only heavy colour in the palette and a destructive
+       confirmation is a genuine warning. The Button destructive variant is an
+       OUTLINE rather than a fill, so rust never covers a large area outside a
+       gauge (§2 reserves saturated status colour for service state). */
+    --destructive: var(--status-overdue);
+    --destructive-foreground: var(--color-bg);
+
+    /* Kept alive purely because components/ui/sonner/Sonner.vue reads it. */
+    --radius: 0;
+}

@@ -48,7 +48,7 @@ const verdict = computed(() => {
 
             <div class="flex flex-wrap items-end gap-x-8 gap-y-3">
                 <div v-if="fuel.actual !== null">
-                    <p class="ct-score">{{ fuel.actual }}</p>
+                    <p class="font-display text-metric">{{ fuel.actual }}</p>
                     <p class="text-muted-foreground text-xs">
                         your MPG &middot; last {{ fuel.reading_count }} fill-ups
                     </p>

@@ -54,11 +54,11 @@ const rightItems = computed(() => shellNavItems.value.slice(half.value));
                     v-for="item in leftItems"
                     :key="item.title"
                     :href="item.href"
-                    class="ease-standard flex min-h-11 flex-1 flex-col items-center gap-1 py-1 transition-colors duration-[var(--dur-fast)] active:scale-[var(--press-scale)]"
+                    class="ease-standard flex min-h-11 flex-1 flex-col items-center gap-1 py-1 transition-colors duration-[var(--dur-fast)]"
                     :class="
                         isCurrentOrParentUrl(item.href)
                             ? 'text-brand-on-subtle font-bold'
-                            : 'font-medium text-[var(--ink-400)]'
+                            : 'font-medium text-[var(--color-neutral-700)]'
                     "
                     :aria-current="
                         isCurrentOrParentUrl(item.href) ? 'page' : undefined
@@ -85,11 +85,11 @@ const rightItems = computed(() => shellNavItems.value.slice(half.value));
                     v-for="item in rightItems"
                     :key="item.title"
                     :href="item.href"
-                    class="ease-standard flex min-h-11 flex-1 flex-col items-center gap-1 py-1 transition-colors duration-[var(--dur-fast)] active:scale-[var(--press-scale)]"
+                    class="ease-standard flex min-h-11 flex-1 flex-col items-center gap-1 py-1 transition-colors duration-[var(--dur-fast)]"
                     :class="
                         isCurrentOrParentUrl(item.href)
                             ? 'text-brand-on-subtle font-bold'
-                            : 'font-medium text-[var(--ink-400)]'
+                            : 'font-medium text-[var(--color-neutral-700)]'
                     "
                     :aria-current="
                         isCurrentOrParentUrl(item.href) ? 'page' : undefined

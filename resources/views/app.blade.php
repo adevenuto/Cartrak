@@ -8,15 +8,15 @@
 
         {{-- Inline style to set the HTML background color based on our theme in app.css.
              This runs before the CSS bundle loads, so it cannot use var(); the value
-             MUST track --surface-page in resources/css/cartrak/ds-tokens.css, or cold
+             MUST track --color-bg in resources/css/ignition/tokens.css, or cold
              loads flash the wrong colour. --}}
         <style>
             html {
-                background-color: #ECEAEB;
+                background-color: #f2f2f3;
             }
         </style>
 
-        <meta name="theme-color" content="#ECEAEB">
+        <meta name="theme-color" content="#f2f2f3">
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">

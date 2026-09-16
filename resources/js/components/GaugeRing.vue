@@ -32,17 +32,17 @@ const props = withDefaults(
 
 const GAP = 0.06; // radians between segments
 
-const trackColor = 'var(--border-strong)';
+const trackColor = 'var(--gauge-track)';
 
 const fillColor = computed(() => {
     switch (props.status) {
         case 'healthy':
-            return 'var(--success)';
+            return 'var(--color-accent)';
         case 'soon':
-            return 'var(--warning)';
+            return 'var(--status-due)';
         case 'due':
         case 'overdue':
-            return 'var(--brand)';
+            return 'var(--status-overdue)';
         default:
             return trackColor;
     }

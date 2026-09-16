@@ -47,7 +47,7 @@ const specs = computed(() =>
 <template>
     <Link
         :href="show(vehicle.id)"
-        class="ease-standard block transition-transform duration-[var(--dur-fast)] active:scale-[var(--press-scale)]"
+        class="ease-standard block transition-colors duration-[var(--dur-fast)]"
         :data-test="`vehicle-card-${vehicle.id}`"
     >
         <Card>
