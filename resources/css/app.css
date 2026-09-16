@@ -4,8 +4,6 @@
 
 /* Layer 1 — raw design-system tokens, verbatim from docs/design_system. */
 @import './cartrak/ds-tokens.css';
-/* Layer 1b — derived dark counterparts (no design-system source; see file header). */
-@import './cartrak/ds-dark.css';
 /* Layer 2 — shadcn's semantic variable names, expressed in design-system terms. */
 @import './cartrak/shadcn-bridge.css';
 /* Design-system type roles that need a real utility. */
@@ -14,16 +12,15 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
-@custom-variant dark (&:is(.dark *));
-
 /*
  * Layer 3 — Tailwind registration.
  *
  * `inline` is load-bearing throughout: it emits nothing to :root and substitutes
  * the referenced variable directly into each utility, resolved at the element.
- * That is what lets a single `.dark` class on <html> retarget the whole app, and
- * it is why ported design-system components must read layer 1 (var(--brand)),
- * never var(--color-primary) — the latter does not exist at runtime.
+ * It exists so that <style>-block and inline-style consumers resolve layer 1
+ * directly, and it is why ported design-system components must read layer 1
+ * (var(--brand)), never var(--color-primary) — the latter does not exist at
+ * runtime.
  */
 @theme inline {
     /* ── Families. --font-plus-jakarta-sans is emitted into <head> by

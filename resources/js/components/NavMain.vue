@@ -15,7 +15,7 @@ defineProps<{
 }>();
 
 // isCurrentOrParentUrl, not isCurrentUrl: Settings points at /settings/profile
-// but must stay active across /settings/security and /settings/appearance.
+// but must stay active across /settings/security.
 const { isCurrentOrParentUrl } = useCurrentUrl();
 </script>
 

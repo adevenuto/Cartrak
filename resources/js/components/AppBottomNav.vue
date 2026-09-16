@@ -46,7 +46,7 @@ const rightItems = computed(() => shellNavItems.value.slice(half.value));
         data-test="bottom-nav"
     >
         <div
-            class="bg-card relative flex items-start rounded-t-xl px-[22px] pt-3.5 shadow-[0_-8px_24px_rgba(26,26,26,0.06)] dark:shadow-[0_-8px_24px_rgba(0,0,0,0.5)]"
+            class="bg-card relative flex items-start rounded-t-xl px-[22px] pt-3.5 shadow-[0_-8px_24px_rgba(26,26,26,0.06)]"
             style="padding-bottom: calc(20px + env(safe-area-inset-bottom))"
         >
             <div class="flex flex-1 gap-1">
