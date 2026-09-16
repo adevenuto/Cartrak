@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
 import { Bell, Menu, Plus, Search } from '@lucide/vue';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import ShellBrand from '@/components/shell/ShellBrand.vue';
 import ShellUserMenu from '@/components/shell/ShellUserMenu.vue';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,8 @@ defineEmits<{ add: []; openNav: [] }>();
 
 const page = usePage();
 const unread = computed(() => page.props.unreadNotifications ?? 0);
+
+const search = ref('');
 </script>
 
 <template>
@@ -51,25 +53,30 @@ const unread = computed(() => page.props.unreadNotifications ?? 0);
         </Button>
 
         <!--
-          Presentational for now: there is no search endpoint yet, and a box
-          that silently does nothing is worse than one that is visibly not ready.
+          A real field, but not yet wired to anything: there is no search
+          endpoint. It submits nowhere and says so rather than appearing to
+          work, which is why Enter is swallowed instead of reloading the page.
         -->
-        <div
-            class="hidden h-[38px] min-w-[250px] items-center gap-[9px] border px-[14px] lg:flex"
+        <form
+            class="ease-standard focus-within:border-accent hidden h-[38px] min-w-[250px] items-center gap-[9px] border px-[14px] transition-colors duration-[var(--dur-fast)] lg:flex"
             :style="{ borderColor: 'var(--shell-field-border)' }"
+            role="search"
+            @submit.prevent
         >
             <Search
                 class="size-[15px] flex-none"
                 :stroke-width="1.5"
                 :style="{ color: 'var(--shell-ink-meta)' }"
             />
-            <span
-                class="text-[13px]"
-                :style="{ color: 'var(--shell-ink-meta)' }"
-            >
-                Search services, parts, records
-            </span>
-        </div>
+            <input
+                v-model="search"
+                type="search"
+                placeholder="Search services, parts, records"
+                aria-label="Search services, parts, records"
+                class="w-full bg-transparent text-[13px] outline-none placeholder:text-(--shell-ink-meta)"
+                :style="{ color: 'var(--shell-ink)' }"
+            />
+        </form>
 
         <div class="flex-1" />
 

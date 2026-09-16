@@ -139,30 +139,6 @@ class VehicleController extends Controller
 
         $gauges = VehicleGauges::for($vehicle);
 
-        $events = $vehicle->events()
-            ->with('lineItems.serviceType')
-            ->latestFirst()
-            ->get()
-            ->map(fn ($event): array => [
-                'id' => $event->id,
-                'type' => $event->type->value,
-                'type_label' => $event->type->label(),
-                'odometer' => $event->odometer,
-                'occurred_on' => $event->occurred_on->toDateString(),
-                'cost_cents' => $event->cost_cents,
-                'notes' => $event->notes,
-                'location' => $event->location,
-                'gallons' => $event->gallons === null ? null : (float) $event->gallons,
-                'full_tank' => $event->full_tank,
-                'mpg' => $event->mpg === null ? null : (float) $event->mpg,
-                'category' => $event->category,
-                'line_items' => $event->lineItems->map(fn ($item): array => [
-                    'id' => $item->id,
-                    'name' => $item->serviceType->name,
-                    'cost_cents' => $item->cost_cents,
-                ])->all(),
-            ]);
-
         return Inertia::render('vehicles/Show', [
             // The switcher row: every vehicle in the garage, in a stable order,
             // so the active chip does not move when a gauge changes.
@@ -208,7 +184,6 @@ class VehicleController extends Controller
                     ->filter(fn (IntervalProgress $g): bool => $g->status === GaugeStatus::Overdue)
                     ->count(),
             ],
-            'events' => $events,
             'recalls' => $vehicle->recalls
                 ->filter(fn (Recall $recall): bool => $recall->isOpen())
                 ->map(fn (Recall $recall): array => [

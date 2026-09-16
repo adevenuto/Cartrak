@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router, setLayoutProps } from '@inertiajs/vue3';
-import { ClipboardList, Pencil, Plus } from '@lucide/vue';
+import { Pencil } from '@lucide/vue';
 import { ref } from 'vue';
-import EmptyState from '@/components/EmptyState.vue';
-import EventRow from '@/components/EventRow.vue';
 import GaugeGallery from '@/components/vehicle/GaugeGallery.vue';
 import VehicleHeaderCard from '@/components/vehicle/VehicleHeaderCard.vue';
 import VehicleSwitcher from '@/components/vehicle/VehicleSwitcher.vue';
@@ -27,13 +25,11 @@ import type {
     ServiceTypeOption,
     VehicleChip,
     VehicleDetail,
-    VehicleEvent,
 } from '@/types/garage';
 
 const props = defineProps<{
     vehicles: VehicleChip[];
     vehicle: VehicleDetail;
-    events: VehicleEvent[];
     gauges: Gauge[];
     recalls: VehicleRecall[];
     fuel: FuelBenchmark | null;
@@ -108,6 +104,11 @@ const specs = [
             @intervals="router.visit(calibrate(vehicle.id))"
         />
 
+        <!-- An open safety recall outranks everything else on the page. -->
+        <RecallAlert v-if="recalls.length" :recalls="recalls" />
+
+        <FuelBenchmarkCard v-if="fuel" :fuel="fuel" />
+
         <!--
             A vehicle added before schedules existed has no intervals at all.
             Without this the section renders as a bare heading with no way
@@ -135,27 +136,6 @@ const specs = [
         </BlueprintFrame>
 
         <GaugeGallery v-else :gauges="gauges" @select="editGauge" />
-
-        <FuelBenchmarkCard v-if="fuel" :fuel="fuel" />
-
-        <div class="flex items-center justify-between">
-            <h2 class="text-h2">History</h2>
-            <Button size="sm" @click="quickAddOpen = true">
-                <Plus />
-                Log Entry
-            </Button>
-        </div>
-
-        <EmptyState
-            v-if="events.length === 0"
-            :icon="ClipboardList"
-            title="Nothing Logged Yet"
-            description="Log a fill-up, a service visit or just today’s mileage to start building this vehicle’s record."
-        />
-
-        <ul v-else class="flex flex-col gap-3">
-            <EventRow v-for="event in events" :key="event.id" :event="event" />
-        </ul>
     </div>
 
     <GaugeEditDialog

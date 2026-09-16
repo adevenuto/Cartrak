@@ -98,7 +98,7 @@ const legend = [
                 </span>
 
                 <GaugeDial
-                    class="mt-1 h-[190px] w-full max-w-[300px]"
+                    class="mt-1 h-[230px] w-full max-w-[300px]"
                     :percent="gauge.percent"
                     :status="gauge.status"
                 />
