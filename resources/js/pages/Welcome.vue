@@ -620,7 +620,6 @@ const navLinks = [
                 >
                     Ignition Index
                 </span>
-                <span class="ml-auto text-[13px]">Formerly CarTrak</span>
             </div>
         </footer>
     </div>

@@ -53,7 +53,7 @@ claimQuickAdd(onQuickAdd);
         v-if="vehicles.length === 0"
         :icon="Warehouse"
         title="Your Garage Is Empty"
-        description="Add your first vehicle and CarTrak starts tracking what it needs next — by both mileage and time, whichever comes first."
+        description="Add your first vehicle and Ignition Index starts tracking what it needs next — by both mileage and time, whichever comes first."
     >
         <Button as-child size="lg">
             <Link :href="create()">
