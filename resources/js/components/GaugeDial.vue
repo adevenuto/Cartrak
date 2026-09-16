@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import type { HTMLAttributes } from 'vue';
 import { computed } from 'vue';
 import { gaugeColor } from '@/lib/gauge';
+import { cn } from '@/lib/utils';
 import type { GaugeDisplayStatus } from '@/types/gauges';
 
 /*
@@ -29,8 +31,9 @@ const props = withDefaults(
         percent: number;
         status: GaugeDisplayStatus;
         variant?: 'large' | 'mini';
+        class?: HTMLAttributes['class'];
     }>(),
-    { variant: 'large' },
+    { variant: 'large', class: undefined },
 );
 
 /** 44 × (240° in radians) = 44 × 4.18879. */
@@ -67,7 +70,7 @@ const isMini = computed(() => props.variant === 'mini');
 <template>
     <svg
         :viewBox="isMini ? '0 0 120 96' : '0 0 120 92'"
-        class="block h-full w-full"
+        :class="cn('block h-full w-full', props.class)"
         role="img"
         :aria-label="
             uncalibrated
