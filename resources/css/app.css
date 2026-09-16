@@ -23,9 +23,13 @@
  * runtime.
  */
 @theme inline {
-    /* ── Families. --font-plus-jakarta-sans is emitted into <head> by
-         laravel-vite-plugin's font handling; see vite.config.ts. ── */
-    --font-sans: var(--font-plus-jakarta-sans);
+    /* ── Families. --font-barlow and --font-barlow-condensed are emitted into
+         <head> by laravel-vite-plugin's font handling; see vite.config.ts.
+         The @theme keys are deliberately NOT named --font-heading: layer 1
+         carries a token of that name holding a literal stack, and one name
+         with two values is a trap. ── */
+    --font-sans: var(--font-barlow);
+    --font-display: var(--font-barlow-condensed);
     --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
     --font-serif-body: 'Lora', Georgia, serif;
     --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
