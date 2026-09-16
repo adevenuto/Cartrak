@@ -1,7 +1,105 @@
-# Build brief: vehicle maintenance & ownership tracker
+# Build brief: Ignition Index (vehicle maintenance & ownership tracker)
+
+> The product was called **CarTrak**. It is now **Ignition Index** — two words, never
+> "IgnitionIndex", never "Ignition-Index", never "CarTrak". Repo:
+> `git@github.com:adevenuto/IgnitionIndex.git`.
+
+## Current state — read this first
+
+**Phases 0–3 are built and on `development`.** A full visual rebrand lives on
+`concept_redesign` (17 commits ahead, pushed). 185 tests green.
+
+Gate everything with `composer ci:check` — Pest, PHPStan level 7, Pint, `vp check`
+(type-aware, warnings denied) and `vue-tsc`. It must be green before any commit.
+
+### What the redesign covers
+Tokens, fonts, the navy shell, the blueprint frame, the 240° gauge dial, the vehicle
+detail screen, and the landing page. **Garage, History, Insights, Settings and auth
+are deliberately half-migrated** — square and set in Barlow, but still carrying old
+crimson accents. That was an accepted trade: the radius and shadow scales were zeroed
+globally so the whole app went square on day one, leaving the class cleanup as
+per-screen debt.
+
+### Known gaps (none are bugs)
+- No **pinning UI**. `position` and `is_pinned` exist, are backfilled and render, but
+  nothing lets a user change which three gauges are pinned. Suggested home for the
+  toggle: the Intervals modal.
+- The top-bar **search** and the rail's **Upgrade to Fleet** cell are inert — both are
+  in the design, neither has a backend. Search deliberately swallows Enter.
+- The landing **hero has no photo**. The design calls for a garage/engine-bay shot and
+  no such asset exists in the drop, so the frame carries a large dial instead. Swapping
+  in an `<img>` is a one-line change; see the comment in `Welcome.vue`.
+- Local dev serves at **`cartrak.test`** (Valet uses the directory name) while `.env`
+  says `ignitionindex.test`. Either `valet link ignitionindex` or point `APP_URL` back,
+  then `php artisan config:clear` — otherwise reminder emails deep-link to a dead host.
+  `DB_DATABASE=cartrak` is fine as-is.
 
 ## Design system (authoritative)
-A Claude-generated design system lives at `docs/design_system`. **Read it before writing any UI, and follow it as the source of truth** for colors, typography, spacing, components, and interaction patterns. Where it conflicts with any styling guidance elsewhere in this brief, the design system wins. Build screens by composing its existing components/tokens rather than introducing new ad-hoc styles.
+`AGENTS.md` is binding and points at `docs/design_system/IGNITION-INDEX-DESIGN-SYSTEM.md`.
+**Read both before writing any UI.** The design doc wins over existing code, and
+components predating it are legacy, not precedent. Do not reintroduce the CarTrak name,
+the red accent, rounded corners, pill shapes, soft shadows, white floating cards or
+filled icons. Take every colour, font and space from the tokens; never hard-code a hex.
+
+The two `.dc.html` artboards are the design at full fidelity and are worth reading
+directly — they carry exact values the prose does not. `ignitionindex.png` and
+`ignitionindexlanding.png` are the reference renders. Where the doc and the artboard
+disagree, the artboard has won every time so far.
+
+**If a design decision is not covered, ask rather than inventing one.**
+
+## Traps that cost real time (all fail silently, gate stays green)
+
+Every one of these was hit during the redesign. None are caught by any check.
+
+- **A component's `class` must be a declared prop merged with `cn()`**, never a
+  fallthrough attribute. Vue *appends* a fallthrough class to the element's own, so
+  the component's hard-coded utility wins and the caller's is ignored. This shipped
+  once: `GaugeDial` hard-coded `h-full w-full` and every dial ignored its size.
+  Follow `Card.vue` / `BlueprintFrame.vue`.
+- **Every non-stock font size must be listed in `DS_FONT_SIZES`** in
+  `resources/js/lib/utils.ts`. tailwind-merge reads an unknown `text-*` as a colour
+  and silently drops the real colour beside it. Guarded by
+  `tests/Unit/DesignTokenSyncTest.php` — keep that passing.
+- **`accent` means steel, the brand.** shadcn's generic hover surface was renamed to
+  `--hover-surface` because Industry uses `--color-accent` for the brand. Do not
+  reintroduce `bg-accent` as a hover state.
+- **`rounded-full` is not covered by the radius scale.** Tailwind has no
+  `--radius-full`; it is a static `calc(infinity * 1px)`, overridden in a utilities
+  layer in `app.css`.
+- **Removing a token does not break anything loudly** — the class just stops
+  painting. After removing any token, grep for it. This bit three times
+  (`--success`, a raw `text-green-500`, `brand-subtle` across eight files).
+- **`vue-tsc` does not catch a deleted `.vue` import.** After deleting a component,
+  grep for its name; the type check will stay green while the build breaks.
+- **`php artisan wayfinder:generate` needs `--with-form`.** The Vite plugin sets
+  `formVariants: true`; the CLI does not infer it, and regenerating without the flag
+  silently strips every `.form()` and breaks ~19 files.
+- **`defineOptions` is compiled and cannot see setup bindings.** Breadcrumbs that
+  need a prop (a vehicle name) must use Inertia's `setLayoutProps`, which resets on
+  navigation. A one-entry breadcrumb renders as the current page — dead text, no
+  link back.
+- **A Vue `{{ }}` inside an SVG `<text>` paints nothing** (it compiles to an
+  SVG-namespaced `<span>`). Gauge readouts are always sibling elements.
+- **String edits against formatted files often no-op.** `vp fmt` splits long
+  attributes across lines, so a single-line search string silently matches nothing.
+  After any scripted edit, verify the *specific change*, not that the element exists.
+
+## Invariants worth not relitigating
+
+- **`GaugeStatus` keeps five cases.** `Due` vs `Overdue` drives reminder cadence
+  (`SendDueReminders` transitions on `last_reminded_status`). The interface draws
+  three; `GaugeStatus::display()` collapses at the presentation boundary and the
+  frontend speaks only `GaugeDisplayStatus`.
+- **Gauges render in `position` order, never by urgency** (design §6). A gauge that
+  moves as its status changes moves under the pointer.
+- **`percent` is uncapped** — 112% is a real reading. Only the arc and needle clamp.
+- **The soon threshold is `config('vehicles.gauges.soon')` = 0.75.** The calibrate
+  screen mirrors it in `lib/gauge.ts` because it previews an unsaved answer; the two
+  are guarded by `tests/Feature/Gauges/ThresholdSyncTest.php`.
+- **The app fills the viewport; only `<main>` scrolls.** The shell is `h-dvh` with
+  `overflow-hidden`, the row carries `min-h-0`, and the rail is `min-h-full`. The
+  1400px cap is on the vehicle page; the 1200px cap belongs only to the landing page.
 
 ## Your role
 You are building a mobile-first web application that helps people track the past and present maintenance of their vehicles. Work through the phased plan at the bottom **one phase at a time**. At the end of each phase, summarize what you built, show me how to run/verify it, and wait for my go-ahead before starting the next phase. Ask clarifying questions rather than guessing. Write tests as you go.
@@ -40,9 +138,9 @@ Guardrail: odometer readings must be monotonic (reject a reading lower than the 
 
 ## Design & UX principles
 - **Mobile-first, thumb-friendly, fast.** The make-or-break screen is logging. The common case must be ~2–3 taps.
-- **Garage grid** as the home: a card per vehicle showing one overall-health ring + its most-urgent item; tap in for the full gauge cluster.
-- **Gauge cluster** per vehicle: each service a ring filling toward "due," colored by status (healthy/soon/overdue), sub-labeled with the binding constraint (e.g. "3,900 mi left" or "due in 8 days"). Warranty is just another ring.
-- **Quick-add flow:** floating "+" → bottom sheet → segmented lane (Fuel / Service / Expense / Miles). The **odometer field is pre-filled with the running estimate** ("≈47,320 — tap to adjust"); date defaults to today; cost/shop/notes/photo optional and collapsed. Fuel needs only odometer + gallons + total cost, auto-computing MPG and $/gal.
+- **Garage grid** as the home: a card per vehicle showing its most-urgent item; tap in for the full gauge wall.
+- **Gauge wall** per vehicle: each service a 240° dial counting up toward "due," coloured steel / amber / rust, sub-labeled with the binding constraint (e.g. "1,450 mi to go" or "Overdue by 1.4 mo"). Three pinned dials, the rest as a two-column list. Green is forbidden.
+- **Quick-add flow:** "Log entry" in the top bar — the app's one primary action, in the chrome, not floating in the content (design §5; the old FAB and bottom nav are gone) → sheet → segmented lane (Fuel / Service / Expense / Miles). The **odometer field is pre-filled with the running estimate** ("≈47,320 — tap to adjust"); date defaults to today; cost/shop/notes/photo optional and collapsed. Fuel needs only odometer + gallons + total cost, auto-computing MPG and $/gal.
 - **Service = a visit with line items:** set date/odometer/shop once, add multiple service line items.
 - **Any assisted capture (later: OCR, voice) pre-fills the confirm sheet — never silently commits.**
 - **Reminders deep-link into the pre-filled log flow** ("Oil due → tap → Save").
@@ -72,19 +170,42 @@ Free tier owns the habit loop; Pro sells amplifiers (which are also the features
 ## Phased build plan
 Build in this order. Each phase must be independently usable and verifiable.
 
-**Phase 0 — Foundation.** Laravel + Inertia + Vue scaffold. Auth (single-owner). Base mobile-first responsive layout/shell wired to the design system. *Done when:* I can register, log in, and see an empty garage shell on mobile and desktop.
+**Phase 0 — Foundation.** ✅ *Done.* Laravel + Inertia + Vue scaffold. Auth (single-owner). Base mobile-first responsive layout/shell wired to the design system. *Done when:* I can register, log in, and see an empty garage shell on mobile and desktop.
 
-**Phase 1 — Core spine: vehicles + manual logging.** Data model (Vehicle, Event + line items, ServiceType, VehicleInterval). Add-a-car via **manual** entry (type VIN or pick year/make/model — no external calls yet, hardcode a small make/model list or free-text). Quick-add bottom sheet for all four event types, including visit-with-line-items. Garage grid + per-vehicle detail listing history. *Done when:* I can add cars and log services/fuel/expenses, and see them listed.
+**Phase 1 — Core spine: vehicles + manual logging.** ✅ *Done* (plus vehicle photos, colour identity). Data model (Vehicle, Event + line items, ServiceType, VehicleInterval). Add-a-car via **manual** entry (type VIN or pick year/make/model — no external calls yet, hardcode a small make/model list or free-text). Quick-add bottom sheet for all four event types, including visit-with-line-items. Garage grid + per-vehicle detail listing history. *Done when:* I can add cars and log services/fuel/expenses, and see them listed.
 
-**Phase 2 — Reminder engine + gauges.** Default schedule templates + per-vehicle overrides. Mileage estimation. Two-axis binding-constraint computation. Gauge/ring dashboard + garage overall-health rings. Onboarding "quick calibrate" so gauges start populated. Monotonic-odometer guardrails. *Done when:* gauges reflect logged data and correctly show the binding axis and "due" states.
+**Phase 2 — Reminder engine + gauges.** ✅ *Done.* Default schedule templates + per-vehicle overrides. Mileage estimation. Two-axis binding-constraint computation. Gauge/ring dashboard + garage overall-health rings. Onboarding "quick calibrate" so gauges start populated. Monotonic-odometer guardrails. *Done when:* gauges reflect logged data and correctly show the binding axis and "due" states.
 
-**Phase 3 — Free API enrichment + notifications.** NHTSA vPIC decode at add-time (cached), NHTSA recall polling + alerts, EPA MPG benchmark. Email + push notifications for due/overdue items, deep-linking into the pre-filled log flow. *Done when:* adding a real VIN auto-fills specs, recalls surface, and reminders fire and deep-link.
+**Phase 3 — Free API enrichment + notifications.** ✅ *Done* (NHTSA decode + recalls, EPA benchmark, queued reminders on the scheduler). NHTSA vPIC decode at add-time (cached), NHTSA recall polling + alerts, EPA MPG benchmark. Email + push notifications for due/overdue items, deep-linking into the pre-filled log flow. *Done when:* adding a real VIN auto-fills specs, recalls surface, and reminders fire and deep-link.
 
-**Phase 4 — Cost ledger + insights.** Aggregate the ledger: cost-per-mile (fuel vs maintenance split), category breakdown, MPG trend (with the diagnostic angle), and upcoming-cost forecast from the schedule. A dedicated Insights surface. *Done when:* the Insights view shows accurate numbers from logged data.
+**Phase 4 — Cost ledger + insights.** ⬅️ *Next.* Aggregate the ledger: cost-per-mile (fuel vs maintenance split), category breakdown, MPG trend (with the diagnostic angle), and upcoming-cost forecast from the schedule. A dedicated Insights surface. *Done when:* the Insights view shows accurate numbers from logged data.
 
 **Phase 5 — Monetization + premium gating.** Cashier/Stripe, Free vs Pro plans, vehicle-count gate, feature gating per the tiering section. Exportable PDF service record (and evaluate a one-off purchase path). *Done when:* I can subscribe, the vehicle gate and premium gates enforce correctly, and I can export a PDF record.
 
 **Phase 6 — Advanced capture (premium polish).** VIN barcode scan (door-jamb sticker) and windshield OCR for add-a-car; receipt OCR and voice entry that **pre-fill the confirm sheet**; share-sheet entry point. CarMD integration to upgrade schedules + cost-anomaly flags. *Done when:* assisted capture pre-fills logs behind the Pro gate.
 
 ## How to work
-Start with Phase 0. Before writing code for each phase, briefly restate your plan for that phase and flag any decisions you need from me. Keep the core event-spine clean; resist over-engineering. Prefer clarity over cleverness.
+Work one phase at a time. Before writing code for a phase, briefly restate the plan and
+flag any decisions you need from me. Keep the core event-spine clean; resist
+over-engineering. Prefer clarity over cleverness.
+
+`composer ci:check` must be green before every commit. Never add Co-Authored-By or any
+Claude attribution to a commit or PR.
+
+### Picking up from here
+Phases 0–3 are done; Phase 4 (Insights) is next on the product plan. Running in
+parallel is the **design migration**: `concept_redesign` rebuilt the shell, the gauge
+dial, the vehicle detail screen and the landing page, and the remaining screens —
+Garage, History, Insights, Settings, auth — still carry old accents.
+
+Two sensible next moves, in either order:
+1. **Migrate the remaining screens** to the design system, screen by screen. Grep for
+   `brand-`, `success`, `warning`, `rounded-full`, `shadow-` and raw Tailwind colours
+   in each file as you go — dead tokens fail silently.
+2. **Build the pinning UI** so the three pinned gauges can be chosen, which is the one
+   piece of the gauge wall the schema supports but the interface does not expose.
+
+Phase 4 is worth designing before building: the Insights surface is not in the design
+drop, so it will need decisions rather than transcription — and §2 forbids tinting
+charts, so the chart palette is an open question (likely semantic steel/amber/rust
+rather than categorical).
