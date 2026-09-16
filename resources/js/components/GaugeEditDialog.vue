@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Form } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
-import GaugeRing from '@/components/GaugeRing.vue';
+import GaugeDial from '@/components/GaugeDial.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -98,11 +98,11 @@ const intervalSummary = computed(() => {
         <DialogContent v-if="gauge" class="sm:max-w-md">
             <DialogHeader class="text-left">
                 <div class="flex items-center gap-3">
-                    <GaugeRing
-                        :progress="gauge.progress"
-                        :status="gauge.status"
-                        :size="48"
-                        :thickness="5"
+                    <GaugeDial
+                        class="h-[46px] w-[58px] flex-none"
+                        variant="mini"
+                        :percent="gauge.raw_progress * 100"
+                        :status="gauge.display_status"
                     />
                     <div class="min-w-0">
                         <DialogTitle class="text-h3">

@@ -6,6 +6,7 @@ use App\Actions\Events\LogEvent;
 use App\Actions\Vehicles\SeedVehicleIntervals;
 use App\Actions\Vehicles\SyncVehiclePhotos;
 use App\Enums\EventType;
+use App\Enums\GaugeStatus;
 use App\Http\Requests\Vehicles\StoreVehicleRequest;
 use App\Http\Requests\Vehicles\UpdateVehicleRequest;
 use App\Jobs\DecodeVehicleVin;
@@ -14,6 +15,7 @@ use App\Models\Recall;
 use App\Models\ServiceType;
 use App\Models\Vehicle;
 use App\Models\VehiclePhoto;
+use App\Support\IntervalProgress;
 use App\Support\VehicleGauges;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -137,31 +139,24 @@ class VehicleController extends Controller
 
         $gauges = VehicleGauges::for($vehicle);
 
-        $events = $vehicle->events()
-            ->with('lineItems.serviceType')
-            ->latestFirst()
-            ->get()
-            ->map(fn ($event): array => [
-                'id' => $event->id,
-                'type' => $event->type->value,
-                'type_label' => $event->type->label(),
-                'odometer' => $event->odometer,
-                'occurred_on' => $event->occurred_on->toDateString(),
-                'cost_cents' => $event->cost_cents,
-                'notes' => $event->notes,
-                'location' => $event->location,
-                'gallons' => $event->gallons === null ? null : (float) $event->gallons,
-                'full_tank' => $event->full_tank,
-                'mpg' => $event->mpg === null ? null : (float) $event->mpg,
-                'category' => $event->category,
-                'line_items' => $event->lineItems->map(fn ($item): array => [
-                    'id' => $item->id,
-                    'name' => $item->serviceType->name,
-                    'cost_cents' => $item->cost_cents,
-                ])->all(),
-            ]);
-
         return Inertia::render('vehicles/Show', [
+            // The switcher row: every vehicle in the garage, in a stable order,
+            // so the active chip does not move when a gauge changes.
+            'vehicles' => $request->user()->vehicles()
+                ->orderBy('created_at')
+                ->get()
+                ->map(fn (Vehicle $other): array => [
+                    'id' => $other->id,
+                    'name' => $other->displayName(),
+                    'color' => $other->color,
+                    'spec' => trim(implode(' ', array_filter([
+                        $other->year,
+                        $other->make,
+                        $other->model,
+                        $other->trim,
+                    ]))),
+                    'is_active' => $other->id === $vehicle->id,
+                ])->values(),
             'vehicle' => [
                 'id' => $vehicle->id,
                 'name' => $vehicle->displayName(),
@@ -179,8 +174,16 @@ class VehicleController extends Controller
                 'photo_color' => $vehicle->primaryPhoto?->placeholder_color,
                 'last_odometer' => $vehicle->last_odometer,
                 'last_odometer_at' => $vehicle->last_odometer_at?->toDateString(),
+                // Rounded to the month for the header's metric row; null when
+                // there is no rate yet rather than a misleading zero.
+                'avg_miles_per_month' => $gauges->mileage->milesPerDay === null
+                    ? null
+                    : (int) round($gauges->mileage->milesPerDay * IntervalProgress::DAYS_PER_MONTH),
+                'services_due_count' => $gauges->needingAttention()->count(),
+                'services_overdue_count' => $gauges->gauges
+                    ->filter(fn (IntervalProgress $g): bool => $g->status === GaugeStatus::Overdue)
+                    ->count(),
             ],
-            'events' => $events,
             'recalls' => $vehicle->recalls
                 ->filter(fn (Recall $recall): bool => $recall->isOpen())
                 ->map(fn (Recall $recall): array => [

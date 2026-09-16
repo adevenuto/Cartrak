@@ -34,6 +34,19 @@ export function formatCentsShort(
     return wholeDollars.format(cents / 100);
 }
 
+/**
+ * A grouped number with no unit. The vehicle card's metric cells render the
+ * unit themselves, at half the size in a lighter ink, so they need the figure
+ * on its own — formatMiles already carries " mi" and would double it up.
+ */
+export function formatNumber(value: number | null | undefined): string | null {
+    if (value === null || value === undefined) {
+        return null;
+    }
+
+    return new Intl.NumberFormat('en-US').format(value);
+}
+
 export function formatMiles(miles: number | null | undefined): string | null {
     if (miles === null || miles === undefined) {
         return null;

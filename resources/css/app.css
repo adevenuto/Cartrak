@@ -2,87 +2,120 @@
 
 @import 'tw-animate-css';
 
-/* Layer 1 — raw design-system tokens, verbatim from docs/design_system. */
-@import './cartrak/ds-tokens.css';
-/* Layer 1b — derived dark counterparts (no design-system source; see file header). */
-@import './cartrak/ds-dark.css';
-/* Layer 2 — shadcn's semantic variable names, expressed in design-system terms. */
-@import './cartrak/shadcn-bridge.css';
-/* Design-system type roles that need a real utility. */
-@import './cartrak/utilities.css';
+/* Layer 1 — Industry design-system tokens, verbatim. */
+@import './ignition/tokens.css';
+/* Layer 1b — product tokens Industry does not carry (shell navy, status, motion). */
+@import './ignition/product.css';
+/* Layer 2 — shadcn's semantic variable names, expressed in Ignition terms. */
+@import './ignition/shadcn-bridge.css';
+/* Layer 2b — blueprint frame, corner marks, duotone, tags, checker strip. */
+@import './ignition/primitives.css';
+/* Layer 2c — type roles that need a real utility. */
+@import './ignition/utilities.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
-@custom-variant dark (&:is(.dark *));
-
 /*
  * Layer 3 — Tailwind registration.
  *
- * `inline` is load-bearing throughout: it emits nothing to :root and substitutes
- * the referenced variable directly into each utility, resolved at the element.
- * That is what lets a single `.dark` class on <html> retarget the whole app, and
- * it is why ported design-system components must read layer 1 (var(--brand)),
- * never var(--color-primary) — the latter does not exist at runtime.
+ * `inline` is load-bearing: it emits nothing to :root and substitutes the
+ * referenced variable directly into each utility, resolved at the element. It
+ * exists so that <style>-block and inline-style consumers — the gauge SVG, the
+ * blueprint corner marks, anything pasted out of an artboard — resolve layer 1
+ * directly, while Tailwind utilities reach the same values through semantic
+ * names. It is why components reading tokens by hand must use layer 1
+ * (var(--color-accent)), never var(--color-primary), which does not exist at
+ * runtime.
+ *
+ * Rule for this block: it owns utility NAMES and points at layer 1 with var().
+ * No literal value belongs here except the type scale, which has no Industry
+ * counterpart.
  */
 @theme inline {
-    /* ── Families. --font-plus-jakarta-sans is emitted into <head> by
-         laravel-vite-plugin's font handling; see vite.config.ts. ── */
-    --font-sans: var(--font-plus-jakarta-sans);
-    --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
-    --font-serif-body: 'Lora', Georgia, serif;
+    /* ── Families. --font-barlow and --font-barlow-condensed are emitted into
+         <head> by laravel-vite-plugin's font handling; see vite.config.ts.
+         Deliberately NOT named --font-heading: layer 1 carries a token of that
+         name holding a literal stack, and one name with two values is a trap. ── */
+    --font-sans: var(--font-barlow);
+    --font-display: var(--font-barlow-condensed);
     --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
 
-    /* ── Type scale. The DS --fs-* values take over Tailwind's font-size
-         namespace, carrying leading/weight/tracking so that `text-h1` renders
-         exactly the DS --text-h1 role. Tailwind's --text-base/lg/xl/2xl… are
-         left intact because components/ui/ still uses them. ── */
+    /* ── Type scale (design doc §3).
+         Heading roles carry weight and tracking but NOT family — the font-size
+         namespace cannot set a family — so they pair with `font-display`:
+         `class="font-display text-readout"`.
+
+         IMPORTANT: every non-stock key here must also be listed in the
+         font-size class group in resources/js/lib/utils.ts, or tailwind-merge
+         reads it as a colour and silently drops the colour beside it. There is
+         no automated check for this. ── */
+    --text-meta: 11px;
+    --text-meta--line-height: 1.45;
     --text-xs: 11px;
     --text-sm: 13px;
     --text-body: 15px;
-    --text-body--line-height: 1.45;
-    --text-title: 16px;
-    --text-title--line-height: 1.25;
+    --text-body--line-height: 1.55;
+    --text-lede: 17px;
+    --text-title: 19px;
+    --text-title--line-height: 1.2;
     --text-title--font-weight: 600;
-    --text-h3: 18px;
-    --text-h3--line-height: 1.25;
+    --text-h3: 25px;
+    --text-h3--line-height: 1.2;
     --text-h3--font-weight: 600;
-    --text-h2: 22px;
-    --text-h2--line-height: 1.25;
-    --text-h2--font-weight: 700;
-    --text-h1: 28px;
-    --text-h1--line-height: 1.25;
-    --text-h1--font-weight: 700;
-    --text-h1--letter-spacing: -0.02em;
+    --text-h2: 32px;
+    --text-h2--line-height: 1.1;
+    --text-h2--font-weight: 600;
+    --text-h1: 38px;
+    --text-h1--line-height: 1.1;
+    --text-h1--font-weight: 600;
+    --text-h1--letter-spacing: -0.01em;
+    --text-metric: 34px;
+    --text-metric--line-height: 1.1;
+    --text-metric--font-weight: 600;
+    --text-readout: 52px;
+    --text-readout--line-height: 1;
+    --text-readout--font-weight: 600;
 
-    /* ── Radius. Adopting the DS scale moves rounded-lg from 8px to 22px across
-         every shadcn primitive — intended, but it is the loudest visual change
-         of the token swap. 2xl/3xl/4xl are cleared so the scale stays continuous
-         rather than jumping back to Tailwind's leftovers above xl. ── */
-    --radius-xs: 8px;
-    --radius-sm: 12px;
-    --radius-md: 16px;
-    --radius-lg: 22px;
-    --radius-xl: 28px;
-    --radius-2xl: initial;
-    --radius-3xl: initial;
-    --radius-4xl: initial;
+    /* ── Geometry. §4: everything is square.
+         Zeroed rather than deleted so the ~109 existing rounded-* classes become
+         no-ops immediately and the app is square on day one; removing the
+         classes themselves is cosmetic debt payable per file as screens migrate.
 
-    /* ── Elevation. Re-exposed under Tailwind's names from the renamed layer-1
-         tokens, so the override is explicit rather than an accident of import
-         order. --shadow-brand is the crimson CTA/FAB glow. ── */
-    --shadow-xs: var(--ct-shadow-xs);
-    --shadow-sm: var(--ct-shadow-sm);
-    --shadow-md: var(--ct-shadow-md);
-    --shadow-lg: var(--ct-shadow-lg);
-    --shadow-brand: var(--ct-shadow-brand);
+         `rounded-full` is NOT covered by this: Tailwind has no --radius-full
+         key, it is a static calc(infinity * 1px). It is overridden below. ── */
+    --radius-xs: 0;
+    --radius-sm: 0;
+    --radius-md: 0;
+    --radius-lg: 0;
+    --radius-xl: 0;
+    --radius-2xl: 0;
+    --radius-3xl: 0;
+    --radius-4xl: 0;
 
-    /* ── Motion. The DS ease-out curve is exposed as `ease-ct-out`; Tailwind's
-         own --ease-out is left alone deliberately (the curves differ, and
-         silently retuning every ease-out utility would be a trap). ── */
+    /* ── Elevation. §4: nothing inside the app window casts a shadow. Same
+         argument as the radius scale — zeroed so existing shadow-* classes stop
+         painting rather than needing a synchronised sweep. ── */
+    --shadow-xs: none;
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-lg: none;
+    --shadow-xl: none;
+
+    /* ── Motion. Industry ships no motion tokens; these are held at the previous
+         system's values so transitions stay coherent during migration. ── */
     --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
-    --ease-ct-out: cubic-bezier(0.16, 1, 0.3, 1);
-    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* ── Product palette. These map product.css's names into Tailwind's colour
+         namespace; the Industry palette needs no entry here because tokens.css
+         already registers it via @theme. ── */
+    --color-shell-navy: var(--shell-navy);
+    --color-shell-navy-deep: var(--shell-navy-deep);
+    --color-shell-ink: var(--shell-ink);
+    --color-status-due: var(--status-due);
+    --color-status-overdue: var(--status-overdue);
+    --color-status-ok-ink: var(--status-ok-ink);
+    --color-status-due-ink: var(--status-due-ink);
 
     /* ── shadcn semantic layer — names unchanged, values via the bridge. ── */
     --color-background: var(--background);
@@ -103,8 +136,10 @@
     --color-muted: var(--muted);
     --color-muted-foreground: var(--muted-foreground);
 
-    --color-accent: var(--accent);
-    --color-accent-foreground: var(--accent-foreground);
+    /* shadcn's generic hover surface. It is NOT called `accent`: in this system
+       `accent` means steel, the brand — see the note in shadcn-bridge.css. */
+    --color-hover-surface: var(--hover-surface);
+    --color-hover-surface-foreground: var(--hover-surface-foreground);
 
     --color-destructive: var(--destructive);
     --color-destructive-foreground: var(--destructive-foreground);
@@ -112,28 +147,17 @@
     --color-border: var(--border);
     --color-input: var(--input);
     --color-ring: var(--ring);
+}
 
-    --color-chart-1: var(--chart-1);
-    --color-chart-2: var(--chart-2);
-    --color-chart-3: var(--chart-3);
-    --color-chart-4: var(--chart-4);
-    --color-chart-5: var(--chart-5);
-
-    --color-sidebar: var(--sidebar-background);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-ring: var(--sidebar-ring);
-
-    /* ── Design-system colours shadcn has no slot for. ── */
-    --color-brand-subtle: var(--brand-subtle);
-    --color-brand-on-subtle: var(--brand-on-subtle);
-    --color-success: var(--success);
-    --color-warning: var(--warning);
-    --color-surface-sunken: var(--surface-sunken);
+/*
+ * `rounded-full` has no theme key to zero — it is a static utility compiling to
+ * calc(infinity * 1px). Pills and circles are forbidden by §4, so it is
+ * neutralised here while the ~16 call sites are removed file by file.
+ */
+@layer utilities {
+    .rounded-full {
+        border-radius: 0;
+    }
 }
 
 @layer base {
@@ -146,7 +170,7 @@
     ::before,
     ::backdrop,
     ::file-selector-button {
-        border-color: var(--border-subtle, currentColor);
+        border-color: var(--color-divider, currentcolor);
     }
 
     * {

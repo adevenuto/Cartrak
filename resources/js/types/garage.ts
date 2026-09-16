@@ -67,6 +67,17 @@ export type VehicleDetail = {
     photo_color: string | null;
     last_odometer: number | null;
     last_odometer_at: string | null;
+    avg_miles_per_month: number | null;
+    services_due_count: number;
+    services_overdue_count: number;
+};
+
+export type VehicleChip = {
+    id: number;
+    name: string;
+    color: string | null;
+    spec: string;
+    is_active: boolean;
 };
 
 export type ServiceTypeOption = {

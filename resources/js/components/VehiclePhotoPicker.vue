@@ -368,7 +368,7 @@ onBeforeUnmount(() => {
         <p
             v-for="message in rejections"
             :key="message"
-            class="text-sm text-[var(--danger)]"
+            class="text-sm text-[var(--status-overdue)]"
         >
             {{ message }}
         </p>

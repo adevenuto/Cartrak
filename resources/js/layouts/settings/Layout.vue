@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { toUrl } from '@/lib/utils';
-import { edit as editAppearance } from '@/routes/appearance';
 import { edit as editProfile } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
 import type { NavItem } from '@/types';
@@ -25,14 +24,13 @@ import type { NavItem } from '@/types';
 const sidebarNavItems: NavItem[] = [
     { title: 'Profile', href: editProfile() },
     { title: 'Security', href: editSecurity() },
-    { title: 'Appearance', href: editAppearance() },
 ];
 
 const { isCurrentOrParentUrl } = useCurrentUrl();
 </script>
 
 <template>
-    <div class="mx-auto w-full max-w-6xl px-5 py-6">
+    <div class="mx-auto w-full max-w-[1400px] px-5 py-6">
         <Heading
             title="Settings"
             description="Manage your profile and account settings"
@@ -51,7 +49,7 @@ const { isCurrentOrParentUrl } = useCurrentUrl();
                                 :class="[
                                     'w-full justify-start rounded-md',
                                     isCurrentOrParentUrl(item.href)
-                                        ? 'bg-accent text-foreground'
+                                        ? 'bg-hover-surface text-foreground'
                                         : 'text-muted-foreground hover:text-foreground',
                                 ]"
                             >

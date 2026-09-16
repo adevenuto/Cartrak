@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, setLayoutProps } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
-import GaugeRing from '@/components/GaugeRing.vue';
+import GaugeDial from '@/components/GaugeDial.vue';
+import { SOON_THRESHOLD } from '@/lib/gauge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { garage } from '@/routes';
-import { show } from '@/routes/vehicles';
+import { calibrate, show } from '@/routes/vehicles';
 import { store } from '@/actions/App/Http/Controllers/VehicleIntervalController';
-import type { GaugeStatus } from '@/types/gauges';
+import type { GaugeDisplayStatus } from '@/types/gauges';
 
 /*
  * Quick calibrate: the short, skippable step straight after adding a car.
@@ -38,10 +39,15 @@ const props = defineProps<{
     estimates: { value: string; label: string }[];
 }>();
 
-defineOptions({
-    layout: {
-        breadcrumbs: [{ title: 'Garage', href: garage() }],
-    },
+// defineOptions is compiled at build time and cannot see props, so a static
+// breadcrumb can only ever name the parent — which renders as the current page
+// and gives no way back. See Show.vue.
+setLayoutProps({
+    breadcrumbs: [
+        { title: 'Garage', href: garage() },
+        { title: props.vehicle.name, href: show(props.vehicle.id) },
+        { title: 'Calibrate', href: calibrate(props.vehicle.id) },
+    ],
 });
 
 const answers = ref<Record<number, { estimate: string; odometer: string }>>({});
@@ -53,12 +59,12 @@ const processing = ref(false);
  */
 function ringFor(interval: Interval): {
     progress: number;
-    status: GaugeStatus;
+    status: GaugeDisplayStatus;
 } {
     const answer = answers.value[interval.id];
 
     if (!answer || answer.estimate === '' || answer.estimate === 'not_sure') {
-        return { progress: 0, status: 'uncalibrated' };
+        return { progress: 0, status: 'unknown' };
     }
 
     const elapsed: Record<string, number> = {
@@ -74,7 +80,11 @@ function ringFor(interval: Interval): {
     return {
         progress,
         status:
-            progress >= 1 ? 'overdue' : progress >= 0.8 ? 'soon' : 'healthy',
+            progress >= 1
+                ? 'overdue'
+                : progress >= SOON_THRESHOLD
+                  ? 'due'
+                  : 'ok',
     };
 }
 
@@ -114,7 +124,7 @@ function submit(): void {
 <template>
     <Head title="Set up your gauges" />
 
-    <div class="mx-auto w-full max-w-6xl px-5 pb-8 md:max-w-2xl">
+    <div class="mx-auto w-full max-w-[1400px] md:max-w-2xl">
         <div class="mb-6 flex items-start justify-between gap-4">
             <div>
                 <h1 class="text-h1">Let's start your gauges</h1>
@@ -137,10 +147,11 @@ function submit(): void {
             <Card v-for="interval in intervals" :key="interval.id">
                 <CardContent class="flex flex-col gap-4">
                     <div class="flex items-center gap-3">
-                        <GaugeRing
-                            v-bind="ringFor(interval)"
-                            :size="56"
-                            :thickness="5"
+                        <GaugeDial
+                            class="h-[54px] w-[68px] flex-none"
+                            variant="mini"
+                            :percent="ringFor(interval).progress * 100"
+                            :status="ringFor(interval).status"
                         />
                         <div class="min-w-0">
                             <p class="text-title">{{ interval.name }}</p>

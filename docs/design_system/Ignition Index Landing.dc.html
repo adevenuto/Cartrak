@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/industry-073689bb-ad62-4044-9f1d-c9beedebbcc6/styles.css">
+<script src="_ds/industry-073689bb-ad62-4044-9f1d-c9beedebbcc6/_ds_bundle.js"></script>
+<script src="./image-slot.js"></script>
+<style>
+  body { background: var(--color-bg); }
+  a { color: var(--color-accent-700); text-decoration: none; }
+  a:hover { color: var(--color-accent-900); }
+</style>
+</helmet>
+
+<div style="display:flex;flex-direction:column;font-family:var(--font-body);color:var(--color-text)">
+
+  <header style="background:#16233a;position:relative">
+    <div style="max-width:1200px;margin:0 auto;padding:14px 28px;display:flex;align-items:center;gap:var(--space-6);flex-wrap:wrap">
+      <a href="#top" style="display:flex;align-items:center;gap:11px;margin-right:auto">
+        <img src="assets/ignition-index-logo-light.png" alt="Ignition Index" style="width:48px;height:auto;flex:none;display:block">
+        <span style="font-family:var(--font-heading);font-size:20px;font-weight:600;letter-spacing:0.02em;line-height:1.05;color:var(--color-bg);text-transform:uppercase">Ignition<br>Index</span>
+      </a>
+      <nav style="display:flex;align-items:center;gap:26px;font-size:14px">
+        <a href="#gauges" style="color:rgba(242,242,243,0.72)" style-hover="color:#f2f2f3">Gauges</a>
+        <a href="#how" style="color:rgba(242,242,243,0.72)" style-hover="color:#f2f2f3">How it works</a>
+        <a href="#fleet" style="color:rgba(242,242,243,0.72)" style-hover="color:#f2f2f3">Fleet</a>
+        <a href="#pricing" style="color:rgba(242,242,243,0.72)" style-hover="color:#f2f2f3">Pricing</a>
+      </nav>
+      <div style="display:flex;align-items:center;gap:var(--space-3)">
+        <a href="#pricing" style="font-size:14px;color:rgba(242,242,243,0.72)" style-hover="color:#f2f2f3">Sign in</a>
+        <a href="#pricing" class="btn btn-primary" style="height:38px;padding:0 20px;font-family:var(--font-heading);font-size:17px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">Start free</a>
+      </div>
+    </div>
+    <div style="height:10px;background:#101a2b;background-image:conic-gradient(rgba(242,242,243,0.16) 90deg, transparent 0 180deg, rgba(242,242,243,0.16) 0 270deg, transparent 0);background-size:10px 10px"></div>
+  </header>
+
+  <section id="top" style="max-width:1200px;margin:0 auto;padding:78px 28px 0;width:100%">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:54px;align-items:center">
+      <div>
+        <div class="tag tag-outline" style="color:var(--color-accent-700);font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;padding:5px 12px">Maintenance, indexed</div>
+        <h1 style="margin:var(--space-4) 0 0;font-size:clamp(46px,6vw,76px);line-height:0.98;letter-spacing:-0.02em;text-transform:uppercase">Know what<br>your car<br>needs next</h1>
+        <p style="margin:var(--space-6) 0 0;font-size:18px;line-height:1.55;max-width:46ch;color:var(--color-neutral-800);text-wrap:pretty">Every service becomes a gauge. Set the interval once — by mileage or by calendar — and Ignition Index reads your odometer against it, so the answer is a glance instead of a shoebox of receipts.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:var(--space-3);margin-top:var(--space-8)">
+          <a href="#pricing" class="btn btn-primary" style="height:46px;padding:0 26px;font-family:var(--font-heading);font-size:19px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">Start free</a>
+          <a href="#how" class="btn btn-secondary" style="height:46px;padding:0 22px;font-size:15px;font-weight:500">See how it works</a>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:var(--space-6);margin-top:var(--space-8);font-size:13px;color:var(--color-neutral-700)">
+          <span>Free for up to 2 vehicles</span><span>·</span><span>No card required</span><span>·</span><span>Import from a spreadsheet</span>
+        </div>
+      </div>
+      <div class="card blueprint duotone" style="gap:0;padding:0;position:relative;aspect-ratio:4/3;min-height:300px">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <image-slot id="ii-landing-hero" shape="rect" fit="cover" placeholder="Drop a garage / engine-bay photo"></image-slot>
+      </div>
+    </div>
+  </section>
+
+  <section id="gauges" style="max-width:1200px;margin:0 auto;padding:96px 28px 0;width:100%">
+    <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:var(--space-6)">
+      <div>
+        <h6 style="margin:0;color:var(--color-accent-700)">01 — The gauge</h6>
+        <h2 style="margin:var(--space-2) 0 0;font-size:clamp(32px,3.4vw,46px);text-transform:uppercase;letter-spacing:-0.01em">One dial per service</h2>
+      </div>
+      <p style="margin:0;max-width:44ch;font-size:16px;line-height:1.55;color:var(--color-neutral-800);text-wrap:pretty">The needle shows how much of the interval you have used. Steel is on interval, amber is due soon, rust is overdue. Nothing else competes for the color.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:18px;margin-top:var(--space-8)">
+      <sc-for list="{{ demo }}" as="g" hint-placeholder-count="4">
+        <div class="card blueprint" style="padding:18px 16px 16px;gap:0;display:flex;flex-direction:column;align-items:center;background:var(--color-neutral-100)">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div style="align-self:stretch;display:flex;align-items:center;justify-content:space-between;font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase">
+            <span style="color:var(--color-neutral-700)">{{ g.basis }}</span>
+            <span class="tag tag-outline" style="border-color:{{ g.color }};color:{{ g.ink }};font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase">{{ g.status }}</span>
+          </div>
+          <div style="width:100%;max-width:200px;height:155px">
+            <svg viewBox="0 0 120 92" style="width:100%;height:100%;display:block">
+            <path d="M21.9 84 A44 44 0 1 1 98.1 84" fill="none" stroke="rgba(29,31,32,0.14)" stroke-width="7"/>
+            <path d="M21.9 84 A44 44 0 1 1 98.1 84" fill="none" stroke="{{ g.color }}" stroke-width="7" stroke-dasharray="{{ g.dash }}"/>
+            <g stroke="rgba(29,31,32,0.35)" stroke-width="1">
+              <line x1="60" y1="8" x2="60" y2="14" transform="rotate(-120 60 62)"/>
+              <line x1="60" y1="8" x2="60" y2="14" transform="rotate(-96 60 62)"/>
+              <line x1="60" y1="8" x2="60" y2="14" transform="rotate(-72 60 62)"/>
+              <line x1="60" y1="8" x2="60" y2="14" transform="rotate(-48 60 62)"/>
+              <line x1="60" y1="8" x2="60" y2="14" transform="rotate(-24 60 62)"/>
+              <line x1="60" y1="8" x2="60" y2="14" transform="rotate(0 60 62)"/>
+              <line x1="60" y1="8" x2="60" y2="14" transform="rotate(24 60 62)"/>
+              <line x1="60" y1="8" x2="60" y2="14" transform="rotate(48 60 62)"/>
+              <line x1="60" y1="8" x2="60" y2="14" transform="rotate(72 60 62)"/>
+              <line x1="60" y1="8" x2="60" y2="14" transform="rotate(96 60 62)"/>
+              <line x1="60" y1="8" x2="60" y2="14" transform="rotate(120 60 62)"/>
+            </g>
+            <g transform="{{ g.needle }}"><path d="M60 62 L57.5 34 L60 28 L62.5 34 Z" fill="#1d1f20"/></g>
+            <circle cx="60" cy="62" r="4.5" fill="#f5f5f8" stroke="#1d1f20" stroke-width="1.4"/>
+            </svg>
+          </div>
+          <div style="font-family:var(--font-heading);font-size:40px;font-weight:600;line-height:1;color:var(--color-text)">{{ g.pct }}</div>
+          <div style="font-family:var(--font-heading);font-size:21px;font-weight:600;text-align:center;line-height:1.1">{{ g.name }}</div>
+          <div style="font-size:12px;color:var(--color-neutral-700);text-align:center">{{ g.meta }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section id="how" style="max-width:1200px;margin:0 auto;padding:96px 28px 0;width:100%">
+    <h6 style="margin:0;color:var(--color-accent-700)">02 — How it works</h6>
+    <h2 style="margin:var(--space-2) 0 var(--space-8);font-size:clamp(32px,3.4vw,46px);text-transform:uppercase;letter-spacing:-0.01em">Three inputs, then it runs itself</h2>
+    <div class="card blueprint" style="gap:0;padding:0;background:var(--color-neutral-100)">
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1px;background:var(--color-divider)">
+        <sc-for list="{{ steps }}" as="s" hint-placeholder-count="3">
+          <div style="padding:30px 28px;background:var(--color-neutral-100);display:flex;flex-direction:column;gap:var(--space-2)">
+            <div style="font-family:var(--font-heading);font-size:58px;font-weight:600;line-height:0.9;color:var(--color-accent)">{{ s.n }}</div>
+            <div style="font-family:var(--font-heading);font-size:24px;font-weight:600;text-transform:uppercase;line-height:1.1">{{ s.title }}</div>
+            <p style="margin:0;font-size:15px;line-height:1.55;color:var(--color-neutral-800);text-wrap:pretty">{{ s.body }}</p>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section id="fleet" style="margin-top:96px;background:var(--color-accent-900);color:var(--color-bg)">
+    <div style="max-width:1200px;margin:0 auto;padding:78px 28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:54px;align-items:center">
+      <div>
+        <h6 style="margin:0;color:rgba(242,242,243,0.6)">03 — Fleet</h6>
+        <h2 style="margin:var(--space-2) 0 0;font-size:clamp(32px,3.4vw,46px);text-transform:uppercase;letter-spacing:-0.01em;color:var(--color-bg)">Same gauges,<br>a hundred vehicles</h2>
+        <p style="margin:var(--space-6) 0 0;max-width:48ch;font-size:17px;line-height:1.55;color:rgba(242,242,243,0.82);text-wrap:pretty">A fleet is a garage that outgrew one person. Group vehicles by site or crew, give drivers permission to log a reading and nothing else, and let the index roll up: what is overdue today, what lands next week, what it will cost.</p>
+        <a href="#pricing" class="btn" style="margin-top:var(--space-8);height:46px;padding:0 26px;border-color:rgba(242,242,243,0.4);color:var(--color-bg);font-family:var(--font-heading);font-size:19px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase" style-hover="background:rgba(242,242,243,0.12)">Talk to us about fleet</a>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:rgba(242,242,243,0.22)">
+        <sc-for list="{{ fleetStats }}" as="f" hint-placeholder-count="4">
+          <div style="background:var(--color-accent-900);padding:24px 20px">
+            <div style="font-family:var(--font-heading);font-size:44px;font-weight:600;line-height:1;color:var(--color-bg)">{{ f.v }}</div>
+            <div style="font-size:13px;line-height:1.4;color:rgba(242,242,243,0.68);margin-top:6px">{{ f.k }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing" style="max-width:1200px;margin:0 auto;padding:96px 28px 0;width:100%">
+    <h6 style="margin:0;color:var(--color-accent-700)">04 — Pricing</h6>
+    <h2 style="margin:var(--space-2) 0 var(--space-8);font-size:clamp(32px,3.4vw,46px);text-transform:uppercase;letter-spacing:-0.01em">Pick a tier</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px">
+      <sc-for list="{{ tiers }}" as="t" hint-placeholder-count="3">
+        <div class="card blueprint" style="gap:0;padding:26px 24px 24px;display:flex;flex-direction:column;background:{{ t.bg }};color:{{ t.ink }}">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-3)">
+            <div style="font-family:var(--font-heading);font-size:26px;font-weight:600;text-transform:uppercase;letter-spacing:0.02em">{{ t.name }}</div>
+            <span class="tag tag-outline" style="border-color:{{ t.chip }};color:{{ t.chip }};font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase">{{ t.badge }}</span>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:6px;margin-top:var(--space-4)">
+            <span style="font-family:var(--font-heading);font-size:52px;font-weight:600;line-height:1">{{ t.price }}</span>
+            <span style="font-size:14px;color:{{ t.muted }}">{{ t.per }}</span>
+          </div>
+          <p style="margin:var(--space-3) 0 0;font-size:14px;line-height:1.5;color:{{ t.muted }};text-wrap:pretty">{{ t.line }}</p>
+          <div style="height:1px;background:{{ t.rule }};margin:var(--space-6) 0"></div>
+          <div style="display:flex;flex-direction:column;gap:9px;flex:1">
+            <sc-for list="{{ t.features }}" as="f" hint-placeholder-count="4">
+              <div style="display:flex;align-items:flex-start;gap:10px;font-size:14px;line-height:1.45">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:15px;height:15px;flex:none;margin-top:3px"><path d="m4 12 5 5L20 6"/></svg>
+                <span>{{ f }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <a href="#top" class="btn" style="margin-top:var(--space-8);height:42px;font-family:var(--font-heading);font-size:18px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;background:{{ t.ctaBg }};border-color:{{ t.ctaBorder }};color:{{ t.ctaInk }}">{{ t.cta }}</a>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <footer style="margin-top:96px;background:#16233a;color:rgba(242,242,243,0.68)">
+    <div style="height:10px;background:#101a2b;background-image:conic-gradient(rgba(242,242,243,0.16) 90deg, transparent 0 180deg, rgba(242,242,243,0.16) 0 270deg, transparent 0);background-size:10px 10px"></div>
+    <div style="max-width:1200px;margin:0 auto;padding:40px 28px;display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-6)">
+      <img src="assets/ignition-index-logo-light.png" alt="Ignition Index" style="width:40px;height:auto;flex:none;display:block">
+      <span style="font-family:var(--font-heading);font-size:16px;letter-spacing:0.06em;text-transform:uppercase;color:var(--color-bg)">Ignition Index</span>
+    </div>
+  </footer>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#5980a6&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#5980a6&quot;,&quot;#16233a&quot;,&quot;#416180&quot;],&quot;section&quot;:&quot;Status colors&quot;},&quot;dueColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#c08a2e&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#c08a2e&quot;,&quot;#b07b20&quot;],&quot;section&quot;:&quot;Status colors&quot;},&quot;overdueColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#b4442f&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#b4442f&quot;,&quot;#a33a2a&quot;],&quot;section&quot;:&quot;Status colors&quot;}}">
+const ARC = 184.3;
+
+class Component extends DCLogic {
+  renderVals() {
+    const ok = this.props.accent ?? "#5980a6";
+    const due = this.props.dueColor ?? "#c08a2e";
+    const over = this.props.overdueColor ?? "#b4442f";
+    const demo = [
+      { name: "Oil & filter", pct: 71, basis: "5,000 mi", meta: "1,450 mi to go" },
+      { name: "Tire rotation", pct: 36, basis: "7,500 mi", meta: "4,800 mi to go" },
+      { name: "Cabin air filter", pct: 88, basis: "15,000 mi", meta: "1,800 mi to go" },
+      { name: "Wiper blades", pct: 112, basis: "12 mo", meta: "Overdue by 1.4 mo" }
+    ].map(s => {
+      const v = Math.min(s.pct, 100) / 100;
+      return {
+        ...s,
+        pct: s.pct + "%",
+        color: s.pct >= 100 ? over : s.pct >= 75 ? due : ok,
+        ink: s.pct >= 100 ? over : s.pct >= 75 ? "#8a6a2e" : "var(--color-accent-700)",
+        status: s.pct >= 100 ? "Overdue" : s.pct >= 75 ? "Due soon" : "On interval",
+        dash: (v * ARC).toFixed(1) + " 400",
+        needle: "rotate(" + (-120 + v * 240).toFixed(1) + " 60 62)"
+      };
+    });
+
+    const tier = (o) => ({
+      ...o,
+      bg: o.dark ? "#16233a" : "var(--color-neutral-100)",
+      ink: o.dark ? "#f2f2f3" : "var(--color-text)",
+      muted: o.dark ? "rgba(242,242,243,0.7)" : "var(--color-neutral-700)",
+      rule: o.dark ? "rgba(242,242,243,0.22)" : "var(--color-divider)",
+      chip: o.dark ? "rgba(242,242,243,0.6)" : "var(--color-accent-700)",
+      ctaBg: o.dark ? "var(--color-accent)" : "transparent",
+      ctaBorder: o.dark ? "var(--color-accent)" : "var(--color-neutral-400)",
+      ctaInk: o.dark ? "#0d1626" : "var(--color-text)"
+    });
+
+    return {
+      demo,
+      steps: [
+        { n: "01", title: "Add the vehicle", body: "Year, make, model and VIN. Name it whatever you call it in the driveway." },
+        { n: "02", title: "Set the intervals", body: "Start from the factory schedule or write your own — miles, months, or whichever comes first." },
+        { n: "03", title: "Log a reading", body: "Snap the odometer when you fill up. Every gauge on the vehicle recalculates from that one number." }
+      ],
+      fleetStats: [
+        { v: "Unlimited", k: "Vehicles per account" },
+        { v: "Groups", k: "By site, crew or class" },
+        { v: "Roles", k: "Drivers log, managers configure" },
+        { v: "CSV", k: "Export for accounting" }
+      ],
+      tiers: [
+        tier({ name: "Solo", badge: "Free", price: "$0", per: "forever", line: "One or two cars and the full gauge set.", cta: "Start free",
+          features: ["2 vehicles", "Unlimited services and intervals", "Odometer log and history", "Due-soon email"] }),
+        tier({ name: "Garage", badge: "Popular", price: "$6", per: "/ month", line: "For the enthusiast with a project and a daily.", cta: "Start 14-day trial",
+          features: ["Up to 8 vehicles", "Receipt and document storage", "Parts and cost tracking", "Insights: cost per mile", "Shared access for a partner"] }),
+        tier({ dark: true, name: "Fleet", badge: "Paid tier", price: "$4", per: "/ vehicle / month", line: "For companies running vehicles as equipment.", cta: "Request access",
+          features: ["Unlimited vehicles", "Groups by site, crew or class", "Driver and manager roles", "Fleet-wide overdue roll-up", "CSV export and API", "Priority support"] })
+      ]
+    };
+  }
+}
+
+</script>
+</body>
+</html>

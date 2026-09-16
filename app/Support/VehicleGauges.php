@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Enums\BindingAxis;
 use App\Enums\GaugeStatus;
 use App\Models\Vehicle;
 use App\Models\VehicleInterval;
@@ -73,19 +74,18 @@ readonly class VehicleGauges
     }
 
     /**
-     * Sorted for display: the most urgent first, uncalibrated items last, since
-     * they are a prompt to act rather than a countdown.
+     * Sorted for display by the user's fixed order.
+     *
+     * Deliberately NOT by urgency. Design doc §6 forbids reordering overdue
+     * items to the front: a gauge that jumps position as its status changes
+     * moves under the pointer, and the wall stops being a place you can learn.
      *
      * @return array<int, array<string, mixed>>
      */
     public function toArray(): array
     {
         return $this->gauges
-            ->sortBy([
-                fn (IntervalProgress $a, IntervalProgress $b) => ($a->status === GaugeStatus::Uncalibrated ? 1 : 0)
-                    <=> ($b->status === GaugeStatus::Uncalibrated ? 1 : 0),
-                fn (IntervalProgress $a, IntervalProgress $b) => $b->progress <=> $a->progress,
-            ])
+            ->sortBy(fn (IntervalProgress $g): int => $g->interval->position)
             ->map(fn (IntervalProgress $g): array => self::gaugeToArray($g))
             ->values()
             ->all();
@@ -101,9 +101,16 @@ readonly class VehicleGauges
             'service_type_id' => $gauge->interval->service_type_id,
             'name' => $gauge->interval->serviceType->name,
             'status' => $gauge->status->value,
+            // The three states the interface draws; see GaugeStatus::display().
+            'display_status' => $gauge->status->display(),
+            'is_pinned' => $gauge->interval->is_pinned,
+            'position' => $gauge->interval->position,
             'axis' => $gauge->axis->value,
             'progress' => $gauge->displayProgress(),
             'raw_progress' => $gauge->progress,
+            // Uncapped on purpose: 112% is a real reading and must print as 112.
+            'percent' => (int) round($gauge->progress * 100),
+            'basis' => self::basisFor($gauge),
             'label' => $gauge->label(),
             'miles_remaining' => $gauge->milesRemaining,
             'days_remaining' => $gauge->daysRemaining,
@@ -113,6 +120,33 @@ readonly class VehicleGauges
             'last_done_odometer' => $gauge->interval->last_done_odometer,
             'source' => $gauge->interval->source->value,
         ];
+    }
+
+    /**
+     * What the gauge is measured against, as the card eyebrow shows it:
+     * "5,000 mi" or "12 mo".
+     *
+     * Reads the axis that actually binds, so a gauge limited by time does not
+     * advertise a mileage interval it will never reach first.
+     */
+    private static function basisFor(IntervalProgress $gauge): ?string
+    {
+        $interval = $gauge->interval;
+
+        $miles = $interval->interval_miles === null
+            ? null
+            : number_format($interval->interval_miles).' mi';
+
+        $months = $interval->interval_months === null
+            ? null
+            : $interval->interval_months.' mo';
+
+        return match ($gauge->axis) {
+            BindingAxis::Mileage => $miles,
+            BindingAxis::Time => $months,
+            // Uncalibrated: nothing binds yet, so show whatever is configured.
+            BindingAxis::None => $miles ?? $months,
+        };
     }
 
     /**

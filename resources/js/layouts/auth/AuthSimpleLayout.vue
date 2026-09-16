@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import AppWordmark from '@/components/AppWordmark.vue';
+import ShellBrand from '@/components/shell/ShellBrand.vue';
 import { home } from '@/routes';
 
 defineProps<{
@@ -20,7 +20,7 @@ defineProps<{
                         :href="home()"
                         class="flex flex-col items-center gap-2 font-medium"
                     >
-                        <AppWordmark class="mb-1" />
+                        <ShellBrand ground="paper" class="mb-1" />
                         <span class="sr-only">{{ title }}</span>
                     </Link>
                     <div class="space-y-2 text-center">

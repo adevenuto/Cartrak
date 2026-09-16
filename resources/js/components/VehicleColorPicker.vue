@@ -75,7 +75,7 @@ function onCustomInput(event: Event) {
                     :value="swatch.hex"
                     :aria-label="swatch.name"
                     :title="swatch.name"
-                    class="ring-border data-[state=on]:ring-primary size-9 rounded-full p-0 ring-1 hover:bg-transparent data-[state=on]:ring-2 data-[state=on]:ring-offset-2 data-[state=on]:ring-offset-[var(--card)]"
+                    class="ring-border data-[state=on]:ring-primary size-9 p-0 ring-1 hover:bg-transparent data-[state=on]:ring-2 data-[state=on]:ring-offset-2 data-[state=on]:ring-offset-[var(--card)]"
                     :style="{ backgroundColor: swatch.hex }"
                 >
                     <Check
@@ -98,7 +98,7 @@ function onCustomInput(event: Event) {
                 a hand-rolled one would be worse than the platform's.
             -->
             <label
-                class="ring-border focus-within:ring-primary relative size-9 shrink-0 cursor-pointer overflow-hidden rounded-full ring-1 focus-within:ring-2"
+                class="ring-border focus-within:ring-primary relative size-9 shrink-0 cursor-pointer overflow-hidden ring-1 focus-within:ring-2"
                 :class="isCustom ? 'ring-primary ring-2' : ''"
                 :style="
                     isCustom

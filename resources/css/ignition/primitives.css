@@ -1,0 +1,149 @@
+/*
+ * Layer 2b — the Ignition Index component primitives.
+ *
+ * Transcribed from the Industry sheet's .blueprint / .corner / .duotone rules
+ * and the artboard's inline overrides. Prefixed `ii-` so nothing here can
+ * collide with a Tailwind utility of the same name.
+ *
+ * These are plain classes rather than @utility because they are multi-element
+ * treatments (a frame plus four corner marks), not single-property utilities.
+ */
+
+@layer components {
+    /*
+     * The blueprint frame. Design doc §4: square, hairline, no shadow.
+     *
+     * The Industry sheet leaves .card transparent and every card in the artboard
+     * overrides it inline to --color-neutral-100; §4's prose agrees with the
+     * artboard, so the fill is baked in here rather than repeated at each call
+     * site.
+     */
+    .ii-blueprint {
+        position: relative;
+        border: 1px solid var(--color-divider);
+        border-radius: 0;
+        background: var(--color-neutral-100);
+    }
+
+    /*
+     * A blueprint draws its corner marks OUTSIDE the box, while overlay
+     * treatments clip theirs. When a frame wraps a clipped child the frame has
+     * to win, or the marks are cut off.
+     */
+    .ii-blueprint.ii-duotone,
+    .ii-blueprint:has(> .ii-duotone) {
+        overflow: visible;
+    }
+
+    /*
+     * Corner marks. Four children rather than pseudo-elements: each mark needs
+     * two strokes, and a box only has two pseudo-elements. Industry's own answer
+     * is four children, so this matches the source.
+     */
+    .ii-corner {
+        position: absolute;
+        width: 11px;
+        height: 11px;
+        color: color-mix(in srgb, var(--color-text) 55%, transparent);
+        pointer-events: none;
+    }
+
+    .ii-corner::before,
+    .ii-corner::after {
+        content: '';
+        position: absolute;
+        background: currentcolor;
+    }
+
+    .ii-corner::before {
+        left: 5px;
+        top: 0;
+        width: 1px;
+        height: 100%;
+    }
+
+    .ii-corner::after {
+        top: 5px;
+        left: 0;
+        width: 100%;
+        height: 1px;
+    }
+
+    .ii-corner-tl {
+        top: -6px;
+        left: -6px;
+    }
+
+    .ii-corner-tr {
+        top: -6px;
+        right: -6px;
+    }
+
+    .ii-corner-bl {
+        bottom: -6px;
+        left: -6px;
+    }
+
+    .ii-corner-br {
+        bottom: -6px;
+        right: -6px;
+    }
+
+    /*
+     * Duotone photography (§4: desaturate AND wash into the steel accent).
+     *
+     * The grayscale() pass is not in the Industry sheet, which uses the colour
+     * blend alone — but a blend re-hues without desaturating, so a saturated red
+     * car still reads red-ish in luminance. Grayscale-then-colour-blend is the
+     * standard duotone recipe and is what §4 actually describes.
+     */
+    .ii-duotone {
+        position: relative;
+        overflow: hidden;
+        filter: grayscale(1) contrast(1.05);
+    }
+
+    .ii-duotone::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: var(--color-accent);
+        mix-blend-mode: color;
+    }
+
+    /*
+     * Status tag. §2 wants the bright colour on the border and the deep step on
+     * the text, so the two genuinely differ — which currentColor cannot express.
+     * Each instance sets the pair.
+     */
+    .ii-tag {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 0;
+        padding: 3px 10px;
+        font-size: 11px;
+        letter-spacing: 0.02em;
+    }
+
+    .ii-tag-outline {
+        border: 1px solid var(--ii-tag-border, currentcolor);
+        color: var(--ii-tag-ink, currentcolor);
+    }
+
+    /*
+     * The checker strip (§1). Rendered once per page by the shell, never by a
+     * screen — it is chrome, not content.
+     */
+    .ii-checker {
+        height: 10px;
+        background-color: var(--shell-navy-deep);
+        background-image: conic-gradient(
+            var(--shell-checker-ink) 90deg,
+            transparent 0 180deg,
+            var(--shell-checker-ink) 0 270deg,
+            transparent 0
+        );
+        background-size: 10px 10px;
+    }
+}

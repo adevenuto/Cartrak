@@ -49,7 +49,7 @@ test('mileage binds when miles run out first', function () {
     expect($progress->axis)->toBe(BindingAxis::Mileage)
         ->and($progress->status)->toBe(GaugeStatus::Soon)
         ->and($progress->milesRemaining)->toBe(500)
-        ->and($progress->label())->toBe('500 mi left');
+        ->and($progress->label())->toBe('500 mi to go');
 });
 
 test('time binds when the calendar runs out first', function () {
@@ -62,7 +62,7 @@ test('time binds when the calendar runs out first', function () {
     ]);
 
     expect($progress->axis)->toBe(BindingAxis::Time)
-        ->and($progress->label())->toContain('Due in');
+        ->and($progress->label())->toContain('to go');
 });
 
 test('a mileage only interval never binds on time', function () {
@@ -101,7 +101,7 @@ test('an overdue interval reports how far past it is', function () {
 
     expect($progress->status)->toBe(GaugeStatus::Overdue)
         ->and($progress->milesRemaining)->toBe(-1000)
-        ->and($progress->label())->toBe('1,000 mi over')
+        ->and($progress->label())->toBe('Overdue by 1,000 mi')
         ->and($progress->progress)->toBeGreaterThan(1.0)
         ->and($progress->displayProgress())->toBe(1.0);
 });
@@ -132,5 +132,5 @@ test('a due interval is exactly at the threshold', function () {
 
     expect($progress->status)->toBe(GaugeStatus::Due)
         ->and($progress->progress)->toBe(1.0)
-        ->and($progress->label())->toBe('0 mi left');
+        ->and($progress->label())->toBe('0 mi to go');
 });

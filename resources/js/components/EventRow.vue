@@ -54,10 +54,10 @@ const secondary = computed(() =>
 
 <template>
     <li>
-        <Card class="shadow-sm">
+        <Card>
             <CardContent class="flex items-start gap-3">
                 <span
-                    class="bg-brand-subtle text-brand-on-subtle flex size-10 shrink-0 items-center justify-center rounded-full"
+                    class="flex size-10 shrink-0 items-center justify-center border border-(--color-divider) bg-(--color-accent-100) text-(--color-accent-700)"
                 >
                     <component :is="icons[event.type]" class="size-5" />
                 </span>

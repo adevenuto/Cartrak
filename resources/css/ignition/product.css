@@ -1,0 +1,60 @@
+/*
+ * Layer 1b — product tokens the Industry drop does not carry.
+ *
+ * Kept separate from tokens.css so a future Industry re-export can overwrite
+ * that file wholesale without taking these with it.
+ *
+ * Design doc §2 names two roles the token sheet is missing (the shell navy and
+ * the service-status amber/rust) and states the opacities the navy chrome uses.
+ * AGENTS.md says never to hard-code a hex, so every literal the artboard repeats
+ * is named here once rather than re-typed at each call site.
+ */
+
+:root {
+    /* ── §2 additions: the two roles with no Industry counterpart ── */
+    --shell-navy: #16233a;
+    --shell-navy-deep: #101a2b;
+    --status-due: #c08a2e;
+    --status-overdue: #b4442f;
+
+    /* Deep steps. §2 requires the bright status colour for fills and large
+       numerals, and a deeper step for anything at text size — the bright amber
+       does not hold up under ~14px on paper. */
+    --status-ok-ink: var(--color-accent-700);
+    --status-due-ink: #8a6a2e;
+    --status-overdue-ink: var(--status-overdue);
+
+    /* ── Ink on the navy shell ──
+       Transcribed from the artboard's literal rgba() values, which are all the
+       paper colour at a stated opacity. */
+    --shell-ink: var(--color-bg);
+    --shell-ink-secondary: rgb(242 242 243 / 0.72);
+    --shell-ink-meta: rgb(242 242 243 / 0.55);
+    --shell-ink-eyebrow: rgb(242 242 243 / 0.38);
+    --shell-hairline: rgb(242 242 243 / 0.2);
+    --shell-field-border: rgb(242 242 243 / 0.26);
+    --shell-hover: rgb(89 128 166 / 0.22);
+    --shell-checker-ink: rgb(242 242 243 / 0.16);
+    --shell-active-ink: #0d1626;
+
+    /* ── Gauge chrome (§6) ── */
+    --gauge-track: rgb(29 31 32 / 0.14);
+    --gauge-tick: rgb(29 31 32 / 0.35);
+
+    /* The one legitimate elevation in the system: §4 allows the app window
+       itself to sit above the ground. Nothing inside it casts a shadow. */
+    --shell-elevation: 0 14px 40px rgb(22 35 58 / 0.22);
+
+    /* ── Layout constants carried over from the previous system ── */
+    --card-pad: var(--space-6);
+    --content-max: 430px; /* mobile design width; desktop caps per page */
+
+    /* ── Motion ──
+       Industry ships no motion tokens; nothing was removed, there was simply
+       never a counterpart. These are held at the previous system's values so
+       transitions stay coherent while the screens migrate one at a time. */
+    --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+    --dur-fast: 120ms;
+    --dur-base: 200ms;
+    --dur-slow: 320ms;
+}

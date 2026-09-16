@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
@@ -26,10 +25,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('recalls:check')->weeklyOn(1, '03:00')->withoutOverlapping();
     })
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         $middleware->web(append: [
-            HandleAppearance::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
