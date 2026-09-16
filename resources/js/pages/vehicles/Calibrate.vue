@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, setLayoutProps } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import GaugeRing from '@/components/GaugeRing.vue';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { garage } from '@/routes';
-import { show } from '@/routes/vehicles';
+import { calibrate, show } from '@/routes/vehicles';
 import { store } from '@/actions/App/Http/Controllers/VehicleIntervalController';
 import type { GaugeStatus } from '@/types/gauges';
 
@@ -38,10 +38,15 @@ const props = defineProps<{
     estimates: { value: string; label: string }[];
 }>();
 
-defineOptions({
-    layout: {
-        breadcrumbs: [{ title: 'Garage', href: garage() }],
-    },
+// defineOptions is compiled at build time and cannot see props, so a static
+// breadcrumb can only ever name the parent — which renders as the current page
+// and gives no way back. See Show.vue.
+setLayoutProps({
+    breadcrumbs: [
+        { title: 'Garage', href: garage() },
+        { title: props.vehicle.name, href: show(props.vehicle.id) },
+        { title: 'Calibrate', href: calibrate(props.vehicle.id) },
+    ],
 });
 
 const answers = ref<Record<number, { estimate: string; odometer: string }>>({});

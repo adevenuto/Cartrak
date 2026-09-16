@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, setLayoutProps } from '@inertiajs/vue3';
 import { ClipboardList, Pencil, Plus } from '@lucide/vue';
 import { ref } from 'vue';
 import EmptyState from '@/components/EmptyState.vue';
@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { useQuickAdd } from '@/composables/useQuickAdd';
 import { formatDate, formatMiles } from '@/lib/format';
 import { garage } from '@/routes';
-import { calibrate, edit } from '@/routes/vehicles';
+import { calibrate, edit, show } from '@/routes/vehicles';
 import type {
     FuelBenchmark,
     Gauge,
@@ -40,10 +40,21 @@ const props = defineProps<{
     expenseCategories: string[];
 }>();
 
-defineOptions({
-    layout: {
-        breadcrumbs: [{ title: 'Garage', href: garage() }],
-    },
+/*
+ * Breadcrumbs are set here rather than in defineOptions because defineOptions is
+ * compiled at build time and cannot see setup bindings — so it can name the
+ * parent but never this vehicle, which left "Garage" rendering as the current
+ * page: dead text with no way back.
+ *
+ * setLayoutProps is Inertia's dynamic equivalent. Its store is reset in
+ * swapComponent on any navigation that does not preserve state, so this does
+ * not leak onto the next page.
+ */
+setLayoutProps({
+    breadcrumbs: [
+        { title: 'Garage', href: garage() },
+        { title: props.vehicle.name, href: show(props.vehicle.id) },
+    ],
 });
 
 const photoFailed = ref(false);

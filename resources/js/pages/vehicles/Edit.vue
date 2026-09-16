@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { Form, Head, Link } from '@inertiajs/vue3';
+import { Form, Head, Link, setLayoutProps } from '@inertiajs/vue3';
 import VehicleFields from '@/components/VehicleFields.vue';
 import type { PaletteColor } from '@/components/VehicleColorPicker.vue';
 import type { VehiclePhotoSummary } from '@/types/garage';
 import { Button } from '@/components/ui/button';
 import { garage } from '@/routes';
-import { show, update } from '@/routes/vehicles';
+import { edit, show, update } from '@/routes/vehicles';
 import { update as updateAction } from '@/actions/App/Http/Controllers/VehicleController';
 
 const props = defineProps<{
@@ -26,10 +26,22 @@ const props = defineProps<{
     minYear: number;
 }>();
 
-defineOptions({
-    layout: {
-        breadcrumbs: [{ title: 'Garage', href: garage() }],
-    },
+// defineOptions cannot see props, so a static breadcrumb can only name the
+// parent — which then renders as the current page with no way back.
+setLayoutProps({
+    breadcrumbs: [
+        { title: 'Garage', href: garage() },
+        {
+            title:
+                props.vehicle.nickname ||
+                [props.vehicle.year, props.vehicle.make, props.vehicle.model]
+                    .filter(Boolean)
+                    .join(' ') ||
+                'Vehicle',
+            href: show(props.vehicle.id),
+        },
+        { title: 'Edit', href: edit(props.vehicle.id) },
+    ],
 });
 </script>
 
