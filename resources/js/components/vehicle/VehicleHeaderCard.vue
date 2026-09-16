@@ -74,9 +74,16 @@ const lastReading = computed(() => {
         <div
             class="relative aspect-[16/9] md:aspect-auto md:h-[290px] md:border-r md:border-(--color-divider)"
         >
+            <!--
+                Deliberately NOT .ii-duotone. Section 4 washes photography into
+                the steel accent, but a vehicle photo is the one image on the
+                page whose real colour is information — it is how you recognise
+                your own car, and the identity square beside the name already
+                carries the paint colour.
+            -->
             <div
                 v-if="vehicle.photo_url"
-                class="ii-duotone absolute inset-0"
+                class="absolute inset-0 overflow-hidden"
                 :style="{
                     background: vehicle.photo_color ?? 'var(--color-surface)',
                 }"
