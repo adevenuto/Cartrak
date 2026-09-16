@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { gaugeColor } from '@/lib/gauge';
-import type { GaugeStatus } from '@/types/gauges';
+import type { GaugeDisplayStatus } from '@/types/gauges';
 
 /*
  * A service gauge: a 240° analogue dial that counts UP toward due.
@@ -27,7 +27,7 @@ import type { GaugeStatus } from '@/types/gauges';
 const props = withDefaults(
     defineProps<{
         percent: number;
-        status: GaugeStatus;
+        status: GaugeDisplayStatus;
         variant?: 'large' | 'mini';
     }>(),
     { variant: 'large' },
@@ -38,7 +38,7 @@ const ARC_LENGTH = 184.3;
 const SWEEP = 240;
 const START = -120;
 
-const uncalibrated = computed(() => props.status === 'uncalibrated');
+const uncalibrated = computed(() => props.status === 'unknown');
 
 const fraction = computed(
     () => Math.min(Math.max(props.percent, 0), 100) / 100,

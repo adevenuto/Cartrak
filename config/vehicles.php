@@ -73,7 +73,7 @@ return [
      * 1.0 means due; past that is overdue.
      */
     'gauges' => [
-        'soon' => 0.8,
+        'soon' => 0.75,
         'due' => 1.0,
     ],
 

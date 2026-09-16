@@ -21,8 +21,8 @@ const props = defineProps<{ gauges: Gauge[] }>();
 
 defineEmits<{ select: [gauge: Gauge] }>();
 
-const pinned = computed(() => props.gauges.slice(0, 3));
-const rest = computed(() => props.gauges.slice(3));
+const pinned = computed(() => props.gauges.filter((gauge) => gauge.is_pinned));
+const rest = computed(() => props.gauges.filter((gauge) => !gauge.is_pinned));
 
 /*
  * The 1px grid gaps ARE the rules, which is why each cell paints an opaque
@@ -89,23 +89,23 @@ const legend = [
                     <span
                         class="ii-tag ii-tag-outline shrink-0 text-[10px] font-bold tracking-[0.12em] uppercase"
                         :style="{
-                            '--ii-tag-border': gaugeColor(gauge.status),
-                            '--ii-tag-ink': gaugeInk(gauge.status),
+                            '--ii-tag-border': gaugeColor(gauge.display_status),
+                            '--ii-tag-ink': gaugeInk(gauge.display_status),
                         }"
                     >
-                        {{ gaugeStatusLabel(gauge.status) }}
+                        {{ gaugeStatusLabel(gauge.display_status) }}
                     </span>
                 </span>
 
                 <GaugeDial
                     class="mt-1 h-[230px] w-full max-w-[300px]"
                     :percent="gauge.percent"
-                    :status="gauge.status"
+                    :status="gauge.display_status"
                 />
 
                 <!-- Sibling, never an SVG <text>; see GaugeDial. -->
                 <p class="font-display text-readout">
-                    {{ gaugeReadout(gauge.status, gauge.percent) }}
+                    {{ gaugeReadout(gauge.display_status, gauge.percent) }}
                 </p>
                 <p class="font-display text-[24px]/[1.1] font-semibold">
                     {{ gauge.name }}
@@ -130,7 +130,7 @@ const legend = [
                         class="h-[59px] w-[74px] flex-none"
                         variant="mini"
                         :percent="gauge.percent"
-                        :status="gauge.status"
+                        :status="gauge.display_status"
                     />
 
                     <span class="min-w-0 flex-1">
@@ -152,15 +152,20 @@ const legend = [
                     <span class="flex-none text-right">
                         <span
                             class="font-display block text-[26px]/none font-semibold"
-                            :style="{ color: gaugeColor(gauge.status) }"
+                            :style="{ color: gaugeColor(gauge.display_status) }"
                         >
-                            {{ gaugeReadout(gauge.status, gauge.percent) }}
+                            {{
+                                gaugeReadout(
+                                    gauge.display_status,
+                                    gauge.percent,
+                                )
+                            }}
                         </span>
                         <span
                             class="block text-[10px] font-bold tracking-[0.12em] uppercase"
-                            :style="{ color: gaugeInk(gauge.status) }"
+                            :style="{ color: gaugeInk(gauge.display_status) }"
                         >
-                            {{ gaugeStatusLabel(gauge.status) }}
+                            {{ gaugeStatusLabel(gauge.display_status) }}
                         </span>
                     </span>
                 </button>

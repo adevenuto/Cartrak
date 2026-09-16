@@ -118,11 +118,7 @@ const specs = [
             v-if="!gauges.length"
             class="flex flex-col items-center gap-3 p-(--space-6) text-center"
         >
-            <GaugeDial
-                class="h-16 w-[84px]"
-                :percent="0"
-                status="uncalibrated"
-            />
+            <GaugeDial class="h-16 w-[84px]" :percent="0" status="unknown" />
             <div>
                 <p class="font-display text-title">No gauges yet</p>
                 <p class="text-[13px] text-(--color-neutral-700)">

@@ -1,4 +1,4 @@
-import type { GaugeStatus } from '@/types/gauges';
+import type { GaugeDisplayStatus } from '@/types/gauges';
 
 /**
  * Mirrors config('vehicles.gauges.soon').
@@ -8,7 +8,7 @@ import type { GaugeStatus } from '@/types/gauges';
  * other gauge takes its status from the backend. Guarded by
  * tests/Unit/DesignTokenSyncTest.php so the two cannot drift.
  */
-export const SOON_THRESHOLD = 0.8;
+export const SOON_THRESHOLD = 0.75;
 
 /*
  * How a gauge's state is drawn.
@@ -26,14 +26,13 @@ export const SOON_THRESHOLD = 0.8;
  */
 
 /** §2: the bright step — fills, arcs and numerals at 20px and above. */
-export function gaugeColor(status: GaugeStatus): string {
+export function gaugeColor(status: GaugeDisplayStatus): string {
     switch (status) {
         case 'overdue':
-        case 'due':
             return 'var(--status-overdue)';
-        case 'soon':
+        case 'due':
             return 'var(--status-due)';
-        case 'healthy':
+        case 'ok':
             return 'var(--color-accent)';
         default:
             // Not a fourth status colour — the absence of one.
@@ -42,14 +41,13 @@ export function gaugeColor(status: GaugeStatus): string {
 }
 
 /** §2: the deep step — anything at text size, where the bright step fails AA. */
-export function gaugeInk(status: GaugeStatus): string {
+export function gaugeInk(status: GaugeDisplayStatus): string {
     switch (status) {
         case 'overdue':
-        case 'due':
             return 'var(--status-overdue-ink)';
-        case 'soon':
+        case 'due':
             return 'var(--status-due-ink)';
-        case 'healthy':
+        case 'ok':
             return 'var(--status-ok-ink)';
         default:
             return 'var(--color-neutral-700)';
@@ -57,14 +55,13 @@ export function gaugeInk(status: GaugeStatus): string {
 }
 
 /** §9's vocabulary. "Not set" is unchanged from the existing label(). */
-export function gaugeStatusLabel(status: GaugeStatus): string {
+export function gaugeStatusLabel(status: GaugeDisplayStatus): string {
     switch (status) {
         case 'overdue':
-        case 'due':
             return 'Overdue';
-        case 'soon':
+        case 'due':
             return 'Due soon';
-        case 'healthy':
+        case 'ok':
             return 'On interval';
         default:
             return 'Not set';
@@ -75,6 +72,9 @@ export function gaugeStatusLabel(status: GaugeStatus): string {
  * The readout. An uncalibrated gauge shows an em dash, never 0% — 0% means
  * "just serviced", which is the opposite of "we have no idea".
  */
-export function gaugeReadout(status: GaugeStatus, percent: number): string {
-    return status === 'uncalibrated' ? '—' : `${Math.round(percent)}%`;
+export function gaugeReadout(
+    status: GaugeDisplayStatus,
+    percent: number,
+): string {
+    return status === 'unknown' ? '—' : `${Math.round(percent)}%`;
 }

@@ -10,6 +10,13 @@ export type GaugeStatus =
     | 'due'
     | 'overdue';
 
+/**
+ * The three states the interface draws, plus the null one. The backend keeps
+ * five GaugeStatus cases because Due and Overdue drive different reminder
+ * cadences; they collapse here, where the distinction stops mattering.
+ */
+export type GaugeDisplayStatus = 'ok' | 'due' | 'overdue' | 'unknown';
+
 export type BindingAxis = 'time' | 'mileage' | 'none';
 
 export type Gauge = {
@@ -26,6 +33,9 @@ export type Gauge = {
     percent: number;
     /** What the binding axis measures against: "5,000 mi" or "12 mo". */
     basis: string | null;
+    display_status: GaugeDisplayStatus;
+    is_pinned: boolean;
+    position: number;
     label: string;
     miles_remaining: number | null;
     days_remaining: number | null;

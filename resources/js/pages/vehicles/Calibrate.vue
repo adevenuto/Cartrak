@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { garage } from '@/routes';
 import { calibrate, show } from '@/routes/vehicles';
 import { store } from '@/actions/App/Http/Controllers/VehicleIntervalController';
-import type { GaugeStatus } from '@/types/gauges';
+import type { GaugeDisplayStatus } from '@/types/gauges';
 
 /*
  * Quick calibrate: the short, skippable step straight after adding a car.
@@ -59,12 +59,12 @@ const processing = ref(false);
  */
 function ringFor(interval: Interval): {
     progress: number;
-    status: GaugeStatus;
+    status: GaugeDisplayStatus;
 } {
     const answer = answers.value[interval.id];
 
     if (!answer || answer.estimate === '' || answer.estimate === 'not_sure') {
-        return { progress: 0, status: 'uncalibrated' };
+        return { progress: 0, status: 'unknown' };
     }
 
     const elapsed: Record<string, number> = {
@@ -83,8 +83,8 @@ function ringFor(interval: Interval): {
             progress >= 1
                 ? 'overdue'
                 : progress >= SOON_THRESHOLD
-                  ? 'soon'
-                  : 'healthy',
+                  ? 'due'
+                  : 'ok',
     };
 }
 

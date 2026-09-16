@@ -105,7 +105,7 @@ const specs = computed(() =>
                         class="h-[46px] w-[58px] flex-none"
                         variant="mini"
                         :percent="(vehicle.worst?.raw_progress ?? 0) * 100"
-                        :status="vehicle.worst?.status ?? 'uncalibrated'"
+                        :status="vehicle.worst?.display_status ?? 'unknown'"
                     />
 
                     <div class="min-w-0 flex-1">

@@ -102,7 +102,7 @@ const intervalSummary = computed(() => {
                         class="h-[46px] w-[58px] flex-none"
                         variant="mini"
                         :percent="gauge.raw_progress * 100"
-                        :status="gauge.status"
+                        :status="gauge.display_status"
                     />
                     <div class="min-w-0">
                         <DialogTitle class="text-h3">

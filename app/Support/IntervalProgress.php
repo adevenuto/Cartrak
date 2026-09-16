@@ -32,6 +32,9 @@ readonly class IntervalProgress
      */
     public const DAYS_PER_MONTH = 30.44;
 
+    /** Past roughly two months, a day count stops being readable. */
+    private const MONTH_SWITCH_DAYS = 60;
+
     private function __construct(
         public VehicleInterval $interval,
         public GaugeStatus $status,
@@ -114,21 +117,39 @@ readonly class IntervalProgress
         $miles = $this->milesRemaining ?? 0;
 
         return $miles < 0
-            ? number_format(abs($miles)).' mi over'
-            : number_format($miles).' mi left';
+            ? 'Overdue by '.number_format(abs($miles)).' mi'
+            : number_format($miles).' mi to go';
     }
 
+    /**
+     * Days are only legible for about two months. Past that the design's
+     * vocabulary switches to months, because "Due in 240 days" is a number
+     * nobody converts in their head.
+     */
     private function timeLabel(): string
     {
         $days = $this->daysRemaining ?? 0;
 
         if ($days < 0) {
-            return abs($days).' '.str('day')->plural(abs($days)).' over';
+            return 'Overdue by '.self::humanSpan(abs($days));
         }
 
         return $days === 0
             ? 'Due today'
-            : 'Due in '.$days.' '.str('day')->plural($days);
+            : self::humanSpan($days).' to go';
+    }
+
+    private static function humanSpan(int $days): string
+    {
+        if ($days < self::MONTH_SWITCH_DAYS) {
+            return $days.' '.str('day')->plural($days);
+        }
+
+        $months = $days / self::DAYS_PER_MONTH;
+
+        // One decimal below a year, whole months above it: "1.4 mo" is useful,
+        // "18.3 mo" is just noise.
+        return ($months < 12 ? round($months, 1) : round($months)).' mo';
     }
 
     /**
