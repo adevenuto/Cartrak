@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { Fuel } from '@lucide/vue';
 import { computed } from 'vue';
-import { Card, CardContent } from '@/components/ui/card';
 import type { FuelBenchmark } from '@/types/gauges';
 
 /*
- * Real measured MPG against the EPA sticker.
+ * Real measured MPG against the EPA sticker, as one quiet line.
  *
- * The brief frames this as a diagnostic angle, not a scoreboard: economy
+ * The brief frames this as a diagnostic angle rather than a scoreboard: economy
  * drifting well below the published figure is often the first sign of tyre
- * pressure, a clogged filter or a failing sensor. So the copy explains what a
- * gap might mean rather than just scoring the driver.
+ * pressure, a clogged filter or a failing sensor. So a low reading still says
+ * what it might mean; everything else stays out of the way.
+ *
+ * It sits in the footer of the vehicle card because it is genuinely secondary —
+ * useful when you look for it, never competing with the gauges.
  */
 const props = defineProps<{
     fuel: FuelBenchmark;
@@ -24,71 +26,46 @@ const verdict = computed(() => {
     }
 
     if (delta >= 5) {
-        return { tone: 'good', text: `${delta}% better than the EPA rating` };
+        return { low: false, text: `${delta}% better than EPA` };
     }
 
     if (delta > -10) {
-        return { tone: 'normal', text: 'About the EPA rating' };
+        return { low: false, text: 'about the EPA rating' };
     }
 
-    return {
-        tone: 'low',
-        text: `${Math.abs(delta)}% below the EPA rating`,
-    };
+    return { low: true, text: `${Math.abs(delta)}% below EPA` };
 });
 </script>
 
 <template>
-    <Card v-if="fuel.actual !== null || fuel.sticker !== null" class="border-0">
-        <CardContent class="flex flex-col gap-3">
-            <div class="flex items-center gap-2.5">
-                <Fuel class="text-muted-foreground size-5 shrink-0" />
-                <h2 class="text-h3">Fuel economy</h2>
-            </div>
+    <p
+        v-if="fuel.actual !== null || fuel.sticker !== null"
+        class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[11px] text-(--color-neutral-700)"
+    >
+        <Fuel class="size-3.5 flex-none" :stroke-width="1.5" />
 
-            <div class="flex flex-wrap items-end gap-x-8 gap-y-3">
-                <div v-if="fuel.actual !== null">
-                    <p class="font-display text-metric">{{ fuel.actual }}</p>
-                    <p class="text-muted-foreground text-xs">
-                        your MPG &middot; last {{ fuel.reading_count }} fill-ups
-                    </p>
-                </div>
+        <template v-if="fuel.actual !== null">
+            <span class="font-medium text-(--color-text)">
+                {{ fuel.actual }} MPG
+            </span>
+            <span>&middot; last {{ fuel.reading_count }} fill-ups</span>
+        </template>
 
-                <div v-if="fuel.sticker !== null">
-                    <p class="text-h2">{{ fuel.sticker }}</p>
-                    <p class="text-muted-foreground text-xs">
-                        EPA combined
-                        <template v-if="fuel.city && fuel.highway">
-                            &middot; {{ fuel.city }} city /
-                            {{ fuel.highway }} hwy
-                        </template>
-                    </p>
-                </div>
-            </div>
-
-            <p
-                v-if="verdict"
-                class="text-sm"
-                :class="
-                    verdict.tone === 'low'
-                        ? 'text-brand-on-subtle'
-                        : 'text-muted-foreground'
-                "
-            >
+        <template v-if="verdict">
+            <span>&middot;</span>
+            <span :class="verdict.low ? 'text-(--status-due-ink)' : ''">
                 {{ verdict.text
-                }}<template v-if="verdict.tone === 'low'">
-                    — worth checking tyre pressures and the air
-                    filter.</template
+                }}<template v-if="verdict.low">
+                    — check tyre pressures and the air filter</template
                 >
-            </p>
+            </span>
+        </template>
 
-            <p
-                v-else-if="fuel.actual === null"
-                class="text-muted-foreground text-sm"
-            >
-                Log a few full-tank fill-ups and we'll compare your real economy
-                against this.
-            </p>
-        </CardContent>
-    </Card>
+        <template v-else-if="fuel.actual === null && fuel.sticker !== null">
+            <span>
+                EPA {{ fuel.sticker }} MPG &middot; log a few full tanks to
+                compare
+            </span>
+        </template>
+    </p>
 </template>

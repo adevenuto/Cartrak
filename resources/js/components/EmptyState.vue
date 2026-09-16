@@ -22,7 +22,7 @@ defineProps<{
         class="mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center px-5 py-16 text-center"
     >
         <span
-            class="bg-brand-subtle text-brand-on-subtle mb-5 flex size-16 items-center justify-center rounded-full"
+            class="bg-accent-100 text-accent-700 mb-5 flex size-16 items-center justify-center rounded-full"
         >
             <component :is="icon" class="size-7" />
         </span>

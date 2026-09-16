@@ -57,7 +57,7 @@ const specs = computed(() =>
                         <h3 class="text-h3 flex items-center gap-2">
                             <ShieldAlert
                                 v-if="vehicle.open_recall_count"
-                                class="text-brand-on-subtle size-4 shrink-0"
+                                class="text-accent-700 size-4 shrink-0"
                                 :aria-label="`${vehicle.open_recall_count} open safety recall`"
                             />
                             <VehicleColorDot

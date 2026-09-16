@@ -74,7 +74,7 @@ claimQuickAdd(onQuickAdd);
         -->
         <Card v-if="staleVehicles.length" class="border-0">
             <CardContent class="flex flex-wrap items-center gap-3">
-                <Gauge class="text-brand-on-subtle size-5 shrink-0" />
+                <Gauge class="text-accent-700 size-5 shrink-0" />
                 <p class="text-body min-w-0 flex-1">
                     <template v-if="staleVehicles.length === 1">
                         It's been a while since

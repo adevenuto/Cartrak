@@ -99,7 +99,7 @@ function formatWhen(iso: string | null): string {
                     <Card :class="item.read ? '' : 'ring-primary/30 ring-1'">
                         <CardContent class="flex items-start gap-3">
                             <span
-                                class="bg-brand-subtle text-brand-on-subtle flex size-10 shrink-0 items-center justify-center rounded-full"
+                                class="bg-accent-100 text-accent-700 flex size-10 shrink-0 items-center justify-center rounded-full"
                             >
                                 <ShieldAlert
                                     v-if="item.kind === 'recall'"

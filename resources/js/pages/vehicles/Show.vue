@@ -6,7 +6,6 @@ import GaugeGallery from '@/components/vehicle/GaugeGallery.vue';
 import VehicleHeaderCard from '@/components/vehicle/VehicleHeaderCard.vue';
 import VehicleSwitcher from '@/components/vehicle/VehicleSwitcher.vue';
 import { BlueprintFrame } from '@/components/ui/blueprint';
-import FuelBenchmarkCard from '@/components/FuelBenchmark.vue';
 import RecallAlert from '@/components/RecallAlert.vue';
 import GaugeEditDialog from '@/components/GaugeEditDialog.vue';
 import GaugeDial from '@/components/GaugeDial.vue';
@@ -95,19 +94,18 @@ const specs = [
 <template>
     <Head :title="vehicle.name" />
 
-    <div class="flex w-full flex-col gap-(--space-6)">
+    <div class="mx-auto flex w-full max-w-[1400px] flex-col gap-(--space-6)">
         <VehicleSwitcher :vehicles="vehicles" />
 
         <VehicleHeaderCard
             :vehicle="vehicle"
             :mileage="mileage"
+            :fuel="fuel"
             @intervals="router.visit(calibrate(vehicle.id))"
         />
 
         <!-- An open safety recall outranks everything else on the page. -->
         <RecallAlert v-if="recalls.length" :recalls="recalls" />
-
-        <FuelBenchmarkCard v-if="fuel" :fuel="fuel" />
 
         <!--
             A vehicle added before schedules existed has no intervals at all.

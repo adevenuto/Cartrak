@@ -33,11 +33,20 @@ function onAdd(): void {
 </script>
 
 <template>
-    <div class="bg-background flex min-h-screen flex-col">
+    <!--
+      h-dvh, not h-screen: on mobile Safari 100vh is the tallest the viewport
+      ever gets, so a fixed bar would sit under the collapsing toolbar.
+    -->
+    <div class="bg-background flex h-dvh flex-col overflow-hidden">
         <ShellTopBar @add="onAdd" @open-nav="navOpen = true" />
         <ShellCheckerStrip />
 
-        <div class="flex flex-1 items-stretch">
+        <!--
+          min-h-0 is load-bearing: a flex child defaults to min-height:auto, so
+          without it the row grows to fit its content and the page scrolls as a
+          whole instead of the panes scrolling independently.
+        -->
+        <div class="flex min-h-0 flex-1 items-stretch">
             <aside
                 class="hidden w-[216px] flex-none md:block"
                 :style="{ background: 'var(--shell-navy-deep)' }"

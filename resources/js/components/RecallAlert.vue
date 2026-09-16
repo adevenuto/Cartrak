@@ -24,7 +24,7 @@ defineProps<{
     <Card v-if="recalls.length" class="border-0">
         <CardContent class="flex flex-col gap-4">
             <div class="flex items-center gap-2.5">
-                <ShieldAlert class="text-brand-on-subtle size-5 shrink-0" />
+                <ShieldAlert class="text-accent-700 size-5 shrink-0" />
                 <h2 class="text-h3">
                     {{ recalls.length }} open safety
                     {{ recalls.length === 1 ? 'recall' : 'recalls' }}

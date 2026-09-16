@@ -4,14 +4,16 @@ import { ImagePlus, Pencil, Settings2 } from '@lucide/vue';
 import { computed } from 'vue';
 import { BlueprintFrame } from '@/components/ui/blueprint';
 import { Button } from '@/components/ui/button';
+import FuelBenchmarkLine from '@/components/FuelBenchmark.vue';
 import { formatMiles } from '@/lib/format';
 import { edit } from '@/routes/vehicles';
-import type { MileageSummary } from '@/types/gauges';
+import type { FuelBenchmark, MileageSummary } from '@/types/gauges';
 import type { VehicleDetail } from '@/types/garage';
 
 const props = defineProps<{
     vehicle: VehicleDetail;
     mileage: MileageSummary;
+    fuel: FuelBenchmark | null;
 }>();
 
 defineEmits<{ intervals: [] }>();
@@ -215,12 +217,22 @@ const lastReading = computed(() => {
 
             <div class="min-h-3.5 flex-1" aria-hidden="true" />
 
-            <p
-                v-if="vehicle.vin"
-                class="text-[11px] tracking-[0.06em] text-(--color-neutral-700)"
+            <!--
+                The card's quiet footer: fuel economy on the left as the lower
+                priority reading, the VIN opposite it.
+            -->
+            <div
+                class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-(--space-6)"
             >
-                VIN {{ vehicle.vin }}
-            </p>
+                <FuelBenchmarkLine v-if="fuel" :fuel="fuel" />
+
+                <p
+                    v-if="vehicle.vin"
+                    class="text-[11px] tracking-[0.06em] text-(--color-neutral-700) sm:ml-auto"
+                >
+                    VIN {{ vehicle.vin }}
+                </p>
+            </div>
         </div>
     </BlueprintFrame>
 </template>

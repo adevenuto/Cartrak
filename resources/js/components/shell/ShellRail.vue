@@ -21,7 +21,10 @@ const hasDueNext = computed(
 </script>
 
 <template>
-    <div class="flex h-full flex-col px-[14px] py-[22px]">
+    <!-- min-h-full, not h-full: the spacer still pins the upgrade cell to the
+         bottom, but the rail can grow past the viewport and let the aside
+         scroll rather than clipping its own overflow. -->
+    <div class="flex min-h-full flex-col px-[14px] py-[22px]">
         <p
             class="ii-eyebrow px-2 pb-3 tracking-[0.16em] text-[var(--shell-ink-eyebrow)]"
         >
