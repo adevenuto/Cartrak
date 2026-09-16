@@ -5,7 +5,7 @@ import { computed } from 'vue';
 import { BlueprintFrame } from '@/components/ui/blueprint';
 import { Button } from '@/components/ui/button';
 import FuelBenchmarkLine from '@/components/FuelBenchmark.vue';
-import { formatMiles } from '@/lib/format';
+import { formatNumber } from '@/lib/format';
 import { edit } from '@/routes/vehicles';
 import type { FuelBenchmark, MileageSummary } from '@/types/gauges';
 import type { VehicleDetail } from '@/types/garage';
@@ -156,7 +156,7 @@ const lastReading = computed(() => {
                         {{
                             mileage.projected_odometer === null
                                 ? '—'
-                                : formatMiles(mileage.projected_odometer)
+                                : formatNumber(mileage.projected_odometer)
                         }}<span
                             class="font-sans text-[17px] font-normal text-(--color-neutral-700)"
                         >
@@ -184,7 +184,7 @@ const lastReading = computed(() => {
                         {{
                             vehicle.avg_miles_per_month === null
                                 ? '—'
-                                : formatMiles(vehicle.avg_miles_per_month)
+                                : formatNumber(vehicle.avg_miles_per_month)
                         }}<span
                             v-if="vehicle.avg_miles_per_month !== null"
                             class="font-sans text-[17px] font-normal text-(--color-neutral-700)"

@@ -48,14 +48,14 @@ function onAdd(): void {
         -->
         <div class="flex min-h-0 flex-1 items-stretch">
             <aside
-                class="hidden w-[216px] flex-none md:block"
+                class="hidden w-[216px] flex-none overflow-y-auto md:block"
                 :style="{ background: 'var(--shell-navy-deep)' }"
             >
                 <ShellRail />
             </aside>
 
             <main
-                class="flex min-w-0 flex-1 flex-col gap-[26px] px-[30px] pt-[26px] pb-10 max-md:px-5"
+                class="flex min-w-0 flex-1 flex-col gap-[26px] overflow-y-auto px-[30px] pt-[26px] pb-10 max-md:px-5"
             >
                 <slot />
             </main>
