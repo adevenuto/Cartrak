@@ -36,6 +36,7 @@ const props = defineProps<{
     vehicles: QuickAddVehicle[];
     serviceTypes: ServiceTypeOption[];
     expenseCategories: string[];
+    initialLane?: 'fuel' | 'visit' | 'expense' | 'odometer';
 }>();
 
 const open = defineModel<boolean>('open', { required: true });
@@ -64,6 +65,7 @@ const subtitle = () =>
                 :vehicles="vehicles"
                 :service-types="serviceTypes"
                 :expense-categories="expenseCategories"
+                :initial-lane="initialLane"
                 @saved="open = false"
             />
         </DialogContent>
@@ -85,6 +87,7 @@ const subtitle = () =>
                 :vehicles="vehicles"
                 :service-types="serviceTypes"
                 :expense-categories="expenseCategories"
+                :initial-lane="initialLane"
                 @saved="open = false"
             />
         </SheetContent>

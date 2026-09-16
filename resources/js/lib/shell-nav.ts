@@ -1,35 +1,32 @@
-import { ChartColumn, ClipboardList, Settings, Warehouse } from '@lucide/vue';
+import { usePage } from '@inertiajs/vue3';
+import { ChartColumn, ClipboardList, Warehouse } from '@lucide/vue';
+import { computed } from 'vue';
+import type { ComputedRef } from 'vue';
 import { garage, history, insights } from '@/routes';
-import { edit as editProfile } from '@/routes/profile';
 import type { NavItem } from '@/types';
 
 /**
- * The app shell's four destinations, in one place.
+ * The rail's three destinations, in one place.
  *
- * Both the mobile bottom nav and the desktop rail render this array, so the two
- * cannot drift apart. Order matters for the bottom nav: the design system splits
- * the items two-and-two around the centre FAB (see AppBottomNav.vue), so this
- * must stay exactly four entries.
+ * The desktop rail and the mobile drawer render the same list, so the two
+ * cannot drift apart. Settings is deliberately absent: design doc §5 puts it in
+ * the user block in the top bar, not the rail.
+ *
+ * Garage badges the VEHICLE count, not the due count. Urgency lives in the Due
+ * next list directly beneath it and in the bell's rust badge; badging it here
+ * too would put two competing urgency signals in one 216px column.
  */
-export const shellNavItems: NavItem[] = [
-    {
-        title: 'Garage',
-        href: garage(),
-        icon: Warehouse,
-    },
-    {
-        title: 'History',
-        href: history(),
-        icon: ClipboardList,
-    },
-    {
-        title: 'Insights',
-        href: insights(),
-        icon: ChartColumn,
-    },
-    {
-        title: 'Settings',
-        href: editProfile(),
-        icon: Settings,
-    },
-];
+export function useShellNav(): ComputedRef<NavItem[]> {
+    const page = usePage();
+
+    return computed(() => [
+        {
+            title: 'Garage',
+            href: garage(),
+            icon: Warehouse,
+            badge: page.props.garage?.vehicle_count ?? 0,
+        },
+        { title: 'History', href: history(), icon: ClipboardList },
+        { title: 'Insights', href: insights(), icon: ChartColumn },
+    ]);
+}

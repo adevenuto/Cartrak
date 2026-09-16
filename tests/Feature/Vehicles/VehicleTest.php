@@ -33,7 +33,8 @@ test('adding a vehicle records its starting odometer as an event', function () {
 
     $vehicle = Vehicle::firstOrFail();
 
-    $response->assertRedirect(route('vehicles.show', $vehicle));
+    // Straight into quick calibrate, so the gauges start from something real.
+    $response->assertRedirect(route('vehicles.calibrate', $vehicle));
 
     expect($vehicle->user_id)->toBe($this->user->id)
         ->and($vehicle->last_odometer)->toBe(47_320)
@@ -92,7 +93,10 @@ test('a user can delete their own vehicle', function () {
     expect(Vehicle::whereKey($vehicle->id)->exists())->toBeFalse();
 });
 
-test('the vehicle page lists its events newest first', function () {
+test('history lists events newest first', function () {
+    // The vehicle page used to carry this list. It moved to History when the
+    // detail screen was rebuilt to the design, which ends at the gauge wall —
+    // but the ordering still matters, so the assertion moved with it.
     $vehicle = Vehicle::factory()->for($this->user)->create();
 
     $this->post(route('vehicles.events.store', $vehicle), [
@@ -102,13 +106,23 @@ test('the vehicle page lists its events newest first', function () {
         'type' => 'odometer', 'odometer' => 12_000, 'occurred_on' => '2026-06-01',
     ]);
 
-    $this->get(route('vehicles.show', $vehicle))
+    $this->get(route('history'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('vehicles/Show')
-            ->has('events', 2)
-            ->where('events.0.odometer', 12_000)
-            ->where('events.1.odometer', 10_000));
+            ->component('History')
+            ->has('events.data', 2)
+            ->where('events.data.0.odometer', 12_000)
+            ->where('events.data.1.odometer', 10_000));
+});
+
+test('the vehicle page no longer carries the event list', function () {
+    // The detail screen ends at the gauges, so the events query — which eager
+    // loaded line items and their service types — would be pure cost.
+    $vehicle = Vehicle::factory()->for($this->user)->create();
+
+    $this->get(route('vehicles.show', $vehicle))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->missing('events'));
 });
 
 test('a blank year is stored as null rather than rejected', function () {

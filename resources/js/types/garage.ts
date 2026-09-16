@@ -1,3 +1,5 @@
+import type { Gauge, MileageSummary } from '@/types/gauges';
+
 /**
  * Shapes the garage and vehicle screens receive from Inertia. These mirror the
  * arrays built in VehicleController and HistoryController.
@@ -16,6 +18,11 @@ export type GarageVehicle = {
     last_odometer: number | null;
     last_odometer_at: string | null;
     events_count: number;
+    worst: Gauge | null;
+    due_count: number;
+    open_recall_count: number;
+    uncalibrated_count: number;
+    mileage: MileageSummary;
 };
 
 export type EventLineItem = {
@@ -60,6 +67,17 @@ export type VehicleDetail = {
     photo_color: string | null;
     last_odometer: number | null;
     last_odometer_at: string | null;
+    avg_miles_per_month: number | null;
+    services_due_count: number;
+    services_overdue_count: number;
+};
+
+export type VehicleChip = {
+    id: number;
+    name: string;
+    color: string | null;
+    spec: string;
+    is_active: boolean;
 };
 
 export type ServiceTypeOption = {

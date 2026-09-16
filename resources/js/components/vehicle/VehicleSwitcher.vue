@@ -1,0 +1,78 @@
+<script setup lang="ts">
+import { Link } from '@inertiajs/vue3';
+import { Plus } from '@lucide/vue';
+import { create, show } from '@/routes/vehicles';
+
+/*
+ * The garage, as a row of chips above the vehicle.
+ *
+ * §7 calls these "blueprint chips", but the artboard draws them WITHOUT corner
+ * marks and we follow the artboard: at 150x56px four registration marks read as
+ * noise rather than structure. "Blueprint" here means the square hairline frame.
+ */
+defineProps<{
+    vehicles: {
+        id: number;
+        name: string;
+        color: string | null;
+        spec: string;
+        is_active: boolean;
+    }[];
+}>();
+</script>
+
+<template>
+    <div class="flex gap-(--space-3) overflow-x-auto pb-1">
+        <Link
+            v-for="vehicle in vehicles"
+            :key="vehicle.id"
+            :href="show(vehicle.id)"
+            class="ease-standard flex w-[150px] flex-none flex-col gap-[5px] border px-[13px] py-[11px] transition-colors duration-[var(--dur-fast)]"
+            :class="
+                vehicle.is_active
+                    ? 'border-(--shell-navy) bg-(--shell-navy)'
+                    : 'hover:border-accent border-(--color-divider)'
+            "
+            :aria-current="vehicle.is_active ? 'page' : undefined"
+        >
+            <span class="flex items-center gap-(--space-2)">
+                <!-- §7: the identity colour is a 10px SQUARE, never a dot. -->
+                <span
+                    class="size-[7px] flex-none"
+                    :style="{
+                        background: vehicle.color ?? 'var(--color-neutral-500)',
+                    }"
+                    aria-hidden="true"
+                />
+                <span
+                    class="font-display truncate text-[17px]/none font-semibold"
+                    :class="
+                        vehicle.is_active
+                            ? 'text-(--color-bg)'
+                            : 'text-(--color-text)'
+                    "
+                >
+                    {{ vehicle.name }}
+                </span>
+            </span>
+            <span
+                class="truncate text-[11px]"
+                :class="
+                    vehicle.is_active
+                        ? 'text-(--shell-ink-meta)'
+                        : 'text-(--color-neutral-700)'
+                "
+            >
+                {{ vehicle.spec }}
+            </span>
+        </Link>
+
+        <Link
+            :href="create()"
+            class="ease-standard hover:border-accent hover:text-accent flex w-[54px] flex-none items-center justify-center border border-dashed border-(--color-neutral-400) text-(--color-neutral-700) transition-colors duration-[var(--dur-fast)]"
+        >
+            <Plus class="size-[18px]" :stroke-width="1.5" />
+            <span class="sr-only">Add a vehicle</span>
+        </Link>
+    </div>
+</template>

@@ -18,12 +18,15 @@ defineProps<Props>();
 </script>
 
 <template>
-    <Breadcrumb>
-        <BreadcrumbList>
+    <Breadcrumb class="text-[12px] text-(--color-neutral-700)">
+        <BreadcrumbList class="gap-(--space-3) text-[12px] sm:gap-(--space-3)">
             <template v-for="(item, index) in breadcrumbs" :key="index">
                 <BreadcrumbItem>
                     <template v-if="index === breadcrumbs.length - 1">
-                        <BreadcrumbPage>{{ item.title }}</BreadcrumbPage>
+                        <BreadcrumbPage
+                            class="font-semibold text-(--color-text)"
+                            >{{ item.title }}</BreadcrumbPage
+                        >
                     </template>
                     <template v-else>
                         <BreadcrumbLink as-child>
@@ -31,7 +34,10 @@ defineProps<Props>();
                         </BreadcrumbLink>
                     </template>
                 </BreadcrumbItem>
-                <BreadcrumbSeparator v-if="index !== breadcrumbs.length - 1" />
+                <BreadcrumbSeparator
+                    v-if="index !== breadcrumbs.length - 1"
+                    class="text-(--color-neutral-400)"
+                />
             </template>
         </BreadcrumbList>
     </Breadcrumb>

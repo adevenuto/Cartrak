@@ -2,6 +2,7 @@
 
 namespace App\Actions\Events;
 
+use App\Actions\Vehicles\RecalculateMileageRate;
 use App\Enums\EventType;
 use App\Enums\IntervalSource;
 use App\Models\Event;
@@ -21,6 +22,8 @@ use Illuminate\Support\Facades\DB;
  */
 class LogEvent
 {
+    public function __construct(private RecalculateMileageRate $recalculateRate) {}
+
     /**
      * @param  array<string, mixed>  $attributes
      * @param  array<int, array{service_type_id: int, cost_cents?: int|null, notes?: string|null}>  $lineItems
@@ -133,6 +136,11 @@ class LogEvent
         if ($isNewer) {
             $interval->last_done_at = $event->occurred_on;
             $interval->last_done_odometer = $event->odometer;
+
+            // Start the reminder cycle over. Without this, the next time this
+            // item came due we would believe we had already mentioned it.
+            $interval->last_reminded_status = null;
+            $interval->last_reminded_at = null;
         }
 
         $interval->save();
@@ -143,8 +151,8 @@ class LogEvent
      * recomputed rather than assumed — a backfilled event must not clobber a
      * newer one.
      *
-     * avg_miles_per_day is deliberately left alone: mileage estimation is
-     * Phase 2.
+     * The daily rate is recomputed here too, so the projection the gauges use
+     * is never stale relative to the readings behind it.
      */
     private function refreshOdometer(Vehicle $vehicle): void
     {
@@ -161,5 +169,7 @@ class LogEvent
             'last_odometer' => $newest->odometer,
             'last_odometer_at' => Carbon::parse($newest->occurred_on)->toDateString(),
         ])->save();
+
+        $this->recalculateRate->handle($vehicle);
     }
 }

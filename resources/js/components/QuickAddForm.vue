@@ -47,17 +47,24 @@ import type { QuickAddVehicle, ServiceTypeOption } from '@/types/garage';
  */
 type Lane = 'fuel' | 'visit' | 'expense' | 'odometer';
 
-const props = defineProps<{
-    vehicles: QuickAddVehicle[];
-    serviceTypes: ServiceTypeOption[];
-    expenseCategories: string[];
-}>();
+const props = withDefaults(
+    defineProps<{
+        vehicles: QuickAddVehicle[];
+        serviceTypes: ServiceTypeOption[];
+        expenseCategories: string[];
+        /** Which lane to open on — used by reminder deep links. */
+        initialLane?: Lane;
+    }>(),
+    {
+        initialLane: 'fuel',
+    },
+);
 
 const emit = defineEmits<{
     saved: [];
 }>();
 
-const lane = ref<Lane>('fuel');
+const lane = ref<Lane>(props.initialLane);
 const showDetails = ref(false);
 const selectedId = ref<string>(String(props.vehicles[0]?.id ?? ''));
 const lineItems = ref<{ service_type_id: string; cost: string }[]>([
@@ -118,7 +125,7 @@ function removeLineItem(index: number) {
         <ToggleGroup
             type="single"
             :model-value="lane"
-            class="bg-muted w-full rounded-full p-1"
+            class="bg-muted w-full p-1"
             aria-label="Entry type"
             @update:model-value="onLaneChange"
         >
@@ -127,7 +134,7 @@ function removeLineItem(index: number) {
                 :key="item.value"
                 :value="item.value"
                 :aria-label="item.label"
-                class="ease-standard data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-brand text-muted-foreground h-11 flex-1 rounded-full text-sm font-bold transition-colors duration-[var(--dur-fast)]"
+                class="ease-standard data-[state=on]:bg-primary data-[state=on]:text-primary-foreground text-muted-foreground h-11 flex-1 text-sm font-bold transition-colors duration-[var(--dur-fast)]"
             >
                 <component :is="item.icon" />
                 {{ item.label }}

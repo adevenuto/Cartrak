@@ -12,8 +12,12 @@ export default defineConfig({
             input: ['resources/css/app.css', 'resources/js/app.ts'],
             refresh: true,
             fonts: [
-                bunny('Plus Jakarta Sans', {
-                    weights: [400, 500, 600, 700, 800],
+                bunny('Barlow Condensed', {
+                    weights: [600],
+                    fallbacks: ['ui-sans-serif', 'system-ui', 'sans-serif'],
+                }),
+                bunny('Barlow', {
+                    weights: [400, 500, 700],
                     fallbacks: [
                         'ui-sans-serif',
                         'system-ui',

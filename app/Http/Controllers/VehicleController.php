@@ -3,13 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Events\LogEvent;
+use App\Actions\Vehicles\SeedVehicleIntervals;
 use App\Actions\Vehicles\SyncVehiclePhotos;
 use App\Enums\EventType;
+use App\Enums\GaugeStatus;
 use App\Http\Requests\Vehicles\StoreVehicleRequest;
 use App\Http\Requests\Vehicles\UpdateVehicleRequest;
+use App\Jobs\DecodeVehicleVin;
+use App\Jobs\FetchEpaFuelEconomy;
+use App\Models\Recall;
 use App\Models\ServiceType;
 use App\Models\Vehicle;
 use App\Models\VehiclePhoto;
+use App\Support\IntervalProgress;
+use App\Support\VehicleGauges;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -24,26 +31,40 @@ class VehicleController extends Controller
     public function index(Request $request): Response
     {
         $vehicles = $request->user()->vehicles()
-            ->with('primaryPhoto')
+            ->with(['primaryPhoto', 'intervals.serviceType'])
+            ->withCount(['recalls' => fn ($q) => $q->whereNull('acknowledged_at')])
             ->withCount('events')
             ->orderBy('created_at')
             ->get()
-            ->map(fn (Vehicle $vehicle): array => [
-                'id' => $vehicle->id,
-                'name' => $vehicle->displayName(),
-                'year' => $vehicle->year,
-                'make' => $vehicle->make,
-                'model' => $vehicle->model,
-                'trim' => $vehicle->trim,
-                'color' => $vehicle->color,
-                'photo_thumb_url' => $vehicle->primaryPhoto
-                    ? route('vehicle-photos.thumbnail', $vehicle->primaryPhoto)
-                    : null,
-                'photo_color' => $vehicle->primaryPhoto?->placeholder_color,
-                'last_odometer' => $vehicle->last_odometer,
-                'last_odometer_at' => $vehicle->last_odometer_at?->toDateString(),
-                'events_count' => $vehicle->events_count,
-            ]);
+            ->map(function (Vehicle $vehicle): array {
+                $gauges = VehicleGauges::for($vehicle);
+                $worst = $gauges->worst();
+
+                return [
+                    'id' => $vehicle->id,
+                    'name' => $vehicle->displayName(),
+                    'year' => $vehicle->year,
+                    'make' => $vehicle->make,
+                    'model' => $vehicle->model,
+                    'trim' => $vehicle->trim,
+                    'color' => $vehicle->color,
+                    'photo_thumb_url' => $vehicle->primaryPhoto
+                        ? route('vehicle-photos.thumbnail', $vehicle->primaryPhoto)
+                        : null,
+                    'photo_color' => $vehicle->primaryPhoto?->placeholder_color,
+                    'last_odometer' => $vehicle->last_odometer,
+                    'last_odometer_at' => $vehicle->last_odometer_at?->toDateString(),
+                    'events_count' => $vehicle->events_count,
+                    // One ring per card: whatever is closest to due, named. An
+                    // averaged score would let nine healthy items hide one overdue
+                    // brake job.
+                    'worst' => $worst === null ? null : VehicleGauges::gaugeToArray($worst),
+                    'due_count' => $gauges->needingAttention()->count(),
+                    'open_recall_count' => $vehicle->recalls_count,
+                    'uncalibrated_count' => $gauges->uncalibratedCount(),
+                    'mileage' => $gauges->mileageToArray(),
+                ];
+            });
 
         return Inertia::render('Garage', [
             'vehicles' => $vehicles,
@@ -72,6 +93,7 @@ class VehicleController extends Controller
         StoreVehicleRequest $request,
         LogEvent $logEvent,
         SyncVehiclePhotos $syncPhotos,
+        SeedVehicleIntervals $seedIntervals,
     ): RedirectResponse {
         $data = $request->validated();
 
@@ -80,6 +102,18 @@ class VehicleController extends Controller
                 'odometer', 'photos', 'photo_order', 'removed_photo_ids',
             ])->all(),
         );
+
+        $seedIntervals->handle($vehicle);
+
+        // Enrichment, never a dependency: the car is already saved and usable,
+        // and a vPIC outage simply means specs stay as typed.
+        if (filled($vehicle->vin)) {
+            DecodeVehicleVin::dispatch($vehicle);
+        } else {
+            // No VIN to decode, but year/make/model alone are enough for the
+            // EPA sticker lookup.
+            FetchEpaFuelEconomy::dispatch($vehicle);
+        }
 
         $syncPhotos->handle($vehicle, $request->photos(), $request->photoOrder());
 
@@ -92,40 +126,37 @@ class VehicleController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Vehicle added.')]);
 
-        return to_route('vehicles.show', $vehicle);
+        // Straight into quick calibrate — the brief's "setup is the wow". It is
+        // skippable, and skipping lands on the vehicle either way.
+        return to_route('vehicles.calibrate', $vehicle);
     }
 
     public function show(Request $request, Vehicle $vehicle): Response
     {
         Gate::authorize('view', $vehicle);
 
-        $vehicle->load('primaryPhoto');
+        $vehicle->load(['primaryPhoto', 'intervals.serviceType', 'recalls']);
 
-        $events = $vehicle->events()
-            ->with('lineItems.serviceType')
-            ->latestFirst()
-            ->get()
-            ->map(fn ($event): array => [
-                'id' => $event->id,
-                'type' => $event->type->value,
-                'type_label' => $event->type->label(),
-                'odometer' => $event->odometer,
-                'occurred_on' => $event->occurred_on->toDateString(),
-                'cost_cents' => $event->cost_cents,
-                'notes' => $event->notes,
-                'location' => $event->location,
-                'gallons' => $event->gallons === null ? null : (float) $event->gallons,
-                'full_tank' => $event->full_tank,
-                'mpg' => $event->mpg === null ? null : (float) $event->mpg,
-                'category' => $event->category,
-                'line_items' => $event->lineItems->map(fn ($item): array => [
-                    'id' => $item->id,
-                    'name' => $item->serviceType->name,
-                    'cost_cents' => $item->cost_cents,
-                ])->all(),
-            ]);
+        $gauges = VehicleGauges::for($vehicle);
 
         return Inertia::render('vehicles/Show', [
+            // The switcher row: every vehicle in the garage, in a stable order,
+            // so the active chip does not move when a gauge changes.
+            'vehicles' => $request->user()->vehicles()
+                ->orderBy('created_at')
+                ->get()
+                ->map(fn (Vehicle $other): array => [
+                    'id' => $other->id,
+                    'name' => $other->displayName(),
+                    'color' => $other->color,
+                    'spec' => trim(implode(' ', array_filter([
+                        $other->year,
+                        $other->make,
+                        $other->model,
+                        $other->trim,
+                    ]))),
+                    'is_active' => $other->id === $vehicle->id,
+                ])->values(),
             'vehicle' => [
                 'id' => $vehicle->id,
                 'name' => $vehicle->displayName(),
@@ -143,8 +174,29 @@ class VehicleController extends Controller
                 'photo_color' => $vehicle->primaryPhoto?->placeholder_color,
                 'last_odometer' => $vehicle->last_odometer,
                 'last_odometer_at' => $vehicle->last_odometer_at?->toDateString(),
+                // Rounded to the month for the header's metric row; null when
+                // there is no rate yet rather than a misleading zero.
+                'avg_miles_per_month' => $gauges->mileage->milesPerDay === null
+                    ? null
+                    : (int) round($gauges->mileage->milesPerDay * IntervalProgress::DAYS_PER_MONTH),
+                'services_due_count' => $gauges->needingAttention()->count(),
+                'services_overdue_count' => $gauges->gauges
+                    ->filter(fn (IntervalProgress $g): bool => $g->status === GaugeStatus::Overdue)
+                    ->count(),
             ],
-            'events' => $events,
+            'recalls' => $vehicle->recalls
+                ->filter(fn (Recall $recall): bool => $recall->isOpen())
+                ->map(fn (Recall $recall): array => [
+                    'id' => $recall->id,
+                    'campaign_number' => $recall->campaign_number,
+                    'component' => $recall->component,
+                    'summary' => $recall->summary,
+                    'remedy' => $recall->remedy,
+                    'reported_on' => $recall->reported_on?->toDateString(),
+                ])->values(),
+            'gauges' => $gauges->toArray(),
+            'fuel' => VehicleGauges::fuelBenchmark($vehicle),
+            'mileage' => $gauges->mileageToArray(),
             'serviceTypes' => ServiceType::orderBy('sort_order')->get(['id', 'name', 'category']),
             'expenseCategories' => config('vehicles.expense_categories'),
         ]);
@@ -183,6 +235,10 @@ class VehicleController extends Controller
                 'photos', 'photo_order', 'removed_photo_ids',
             ])->all(),
         );
+
+        if ($vehicle->wasChanged('vin') && filled($vehicle->vin)) {
+            DecodeVehicleVin::dispatch($vehicle);
+        }
 
         $syncPhotos->handle(
             $vehicle,

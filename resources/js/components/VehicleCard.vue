@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { Car, ChevronRight } from '@lucide/vue';
+import { Car, ChevronRight, ShieldAlert } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import { Card, CardContent } from '@/components/ui/card';
+import GaugeDial from '@/components/GaugeDial.vue';
 import VehicleColorDot from '@/components/VehicleColorDot.vue';
-import { formatDate, formatMiles } from '@/lib/format';
+import { formatMiles } from '@/lib/format';
 import { show } from '@/routes/vehicles';
 import type { GarageVehicle } from '@/types/garage';
 
@@ -46,7 +47,7 @@ const specs = computed(() =>
 <template>
     <Link
         :href="show(vehicle.id)"
-        class="ease-standard block transition-transform duration-[var(--dur-fast)] active:scale-[var(--press-scale)]"
+        class="ease-standard block transition-colors duration-[var(--dur-fast)]"
         :data-test="`vehicle-card-${vehicle.id}`"
     >
         <Card>
@@ -54,6 +55,11 @@ const specs = computed(() =>
                 <div class="flex items-start gap-3">
                     <div class="min-w-0 flex-1">
                         <h3 class="text-h3 flex items-center gap-2">
+                            <ShieldAlert
+                                v-if="vehicle.open_recall_count"
+                                class="text-accent-700 size-4 shrink-0"
+                                :aria-label="`${vehicle.open_recall_count} open safety recall`"
+                            />
                             <VehicleColorDot
                                 :color="vehicle.color"
                                 :label="`Paint colour ${vehicle.color}`"
@@ -93,20 +99,41 @@ const specs = computed(() =>
                 </div>
 
                 <div
-                    class="border-border mt-4 flex items-center justify-between border-t pt-3"
+                    class="border-border mt-4 flex items-center gap-3 border-t pt-3"
                 >
-                    <div class="min-w-0">
-                        <p class="text-title">
-                            {{
-                                formatMiles(vehicle.last_odometer) ??
-                                'No reading yet'
-                            }}
+                    <GaugeDial
+                        class="h-[46px] w-[58px] flex-none"
+                        variant="mini"
+                        :percent="(vehicle.worst?.raw_progress ?? 0) * 100"
+                        :status="vehicle.worst?.display_status ?? 'unknown'"
+                    />
+
+                    <div class="min-w-0 flex-1">
+                        <p v-if="vehicle.worst" class="text-title truncate">
+                            {{ vehicle.worst.name }}
                         </p>
-                        <p
-                            v-if="vehicle.last_odometer_at"
-                            class="text-muted-foreground text-xs"
-                        >
-                            as of {{ formatDate(vehicle.last_odometer_at) }}
+                        <p v-else class="text-title truncate">Not set up yet</p>
+
+                        <p class="text-muted-foreground truncate text-sm">
+                            <template v-if="vehicle.worst">
+                                {{ vehicle.worst.label }}
+                                <span v-if="vehicle.due_count > 1">
+                                    &middot; +{{ vehicle.due_count - 1 }} more
+                                    due
+                                </span>
+                            </template>
+                            <template v-else>
+                                Tell us when things were last done
+                            </template>
+                        </p>
+
+                        <p class="text-muted-foreground truncate text-xs">
+                            {{
+                                formatMiles(vehicle.mileage.projected_odometer)
+                            }}
+                            <span v-if="vehicle.mileage.is_projected"
+                                >approx.</span
+                            >
                         </p>
                     </div>
 
