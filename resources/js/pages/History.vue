@@ -36,9 +36,9 @@ defineOptions({
 
     <div
         v-else
-        class="mx-auto flex w-full max-w-6xl flex-col gap-4 px-5 pb-4 md:px-(--card-pad)"
+        class="mx-auto flex w-full max-w-[1400px] flex-col gap-(--space-4)"
     >
-        <p class="text-muted-foreground text-sm">
+        <p class="ii-eyebrow">
             {{ events.total }} {{ events.total === 1 ? 'entry' : 'entries' }}
         </p>
 

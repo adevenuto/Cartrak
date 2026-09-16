@@ -124,7 +124,7 @@ function submit(): void {
 <template>
     <Head title="Set up your gauges" />
 
-    <div class="mx-auto w-full max-w-6xl px-5 pb-8 md:max-w-2xl">
+    <div class="mx-auto w-full max-w-[1400px] md:max-w-2xl">
         <div class="mb-6 flex items-start justify-between gap-4">
             <div>
                 <h1 class="text-h1">Let's start your gauges</h1>

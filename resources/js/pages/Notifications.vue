@@ -68,7 +68,7 @@ function formatWhen(iso: string | null): string {
 
     <div
         v-else
-        class="mx-auto flex w-full max-w-6xl flex-col gap-4 px-5 pb-4 md:px-(--card-pad)"
+        class="mx-auto flex w-full max-w-[1400px] flex-col gap-(--space-4)"
     >
         <div class="flex items-center justify-between">
             <p class="text-muted-foreground text-sm">
@@ -99,7 +99,7 @@ function formatWhen(iso: string | null): string {
                     <Card :class="item.read ? '' : 'ring-primary/30 ring-1'">
                         <CardContent class="flex items-start gap-3">
                             <span
-                                class="bg-accent-100 text-accent-700 flex size-10 shrink-0 items-center justify-center rounded-full"
+                                class="flex size-10 shrink-0 items-center justify-center border border-(--color-divider) bg-(--color-accent-100) text-(--color-accent-700)"
                             >
                                 <ShieldAlert
                                     v-if="item.kind === 'recall'"
