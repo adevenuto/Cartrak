@@ -25,7 +25,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('recalls:check')->weeklyOn(1, '03:00')->withoutOverlapping();
     })
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->encryptCookies(except: ['sidebar_state']);
 
         $middleware->web(append: [
             HandleInertiaRequests::class,

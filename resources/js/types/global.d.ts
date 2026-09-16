@@ -18,11 +18,17 @@ declare module '@inertiajs/core' {
         sharedPageProps: {
             name: string;
             auth: Auth;
-            sidebarOpen: boolean;
             garage: {
                 due_count: number;
                 needs_reading_count: number;
                 vehicle_count: number;
+                due_next: {
+                    vehicle_id: number;
+                    vehicle_name: string;
+                    service_name: string;
+                    status: string;
+                    percent: number;
+                }[];
             };
             unreadNotifications: number;
             [key: string]: unknown;

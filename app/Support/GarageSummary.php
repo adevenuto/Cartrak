@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Enums\GaugeStatus;
 use App\Models\User;
 use App\Models\Vehicle;
 use Illuminate\Database\Eloquent\Collection;
@@ -20,30 +21,27 @@ use Illuminate\Database\Eloquent\Collection;
  */
 readonly class GarageSummary
 {
+    /**
+     * The rail shows three. The artboard back-fills from the healthiest items
+     * when fewer than three are pressing, so the list never renders ragged.
+     */
+    private const DUE_NEXT_LIMIT = 3;
+
+    /**
+     * @param  list<DueNextItem>  $dueNext
+     */
     private function __construct(
         public int $dueCount,
         public int $needsReadingCount,
         public int $vehicleCount,
+        public array $dueNext = [],
     ) {}
 
     public static function for(User $user): self
     {
-        $vehicles = $user->vehicles()->with('intervals.serviceType')->get();
-
-        $due = 0;
-        $needsReading = 0;
-
-        foreach ($vehicles as $vehicle) {
-            $gauges = VehicleGauges::for($vehicle);
-
-            $due += $gauges->needingAttention()->count();
-
-            if ($gauges->mileage->needsReading) {
-                $needsReading++;
-            }
-        }
-
-        return new self($due, $needsReading, $vehicles->count());
+        return self::fromVehicles(
+            $user->vehicles()->with('intervals.serviceType')->get()
+        );
     }
 
     public static function empty(): self
@@ -52,7 +50,7 @@ readonly class GarageSummary
     }
 
     /**
-     * @return array<string, int>
+     * @return array<string, mixed>
      */
     public function toArray(): array
     {
@@ -60,6 +58,10 @@ readonly class GarageSummary
             'due_count' => $this->dueCount,
             'needs_reading_count' => $this->needsReadingCount,
             'vehicle_count' => $this->vehicleCount,
+            'due_next' => array_map(
+                static fn (DueNextItem $item): array => $item->toArray(),
+                $this->dueNext,
+            ),
         ];
     }
 
@@ -71,6 +73,9 @@ readonly class GarageSummary
         $due = 0;
         $needsReading = 0;
 
+        /** @var list<array{item: DueNextItem, progress: float}> $ranked */
+        $ranked = [];
+
         foreach ($vehicles as $vehicle) {
             $gauges = VehicleGauges::for($vehicle);
             $due += $gauges->needingAttention()->count();
@@ -78,8 +83,37 @@ readonly class GarageSummary
             if ($gauges->mileage->needsReading) {
                 $needsReading++;
             }
+
+            foreach ($gauges->gauges as $gauge) {
+                // Uncalibrated items have no baseline, so they cannot be ranked
+                // against anything — they are a prompt, not a countdown.
+                if ($gauge->status === GaugeStatus::Uncalibrated) {
+                    continue;
+                }
+
+                $ranked[] = [
+                    'progress' => $gauge->progress,
+                    'item' => new DueNextItem(
+                        vehicleId: $vehicle->id,
+                        vehicleName: $vehicle->displayName(),
+                        serviceName: $gauge->interval->serviceType->name,
+                        status: $gauge->status->value,
+                        percent: (int) round($gauge->progress * 100),
+                    ),
+                ];
+            }
         }
 
-        return new self($due, $needsReading, $vehicles->count());
+        usort($ranked, static fn (array $a, array $b): int => $b['progress'] <=> $a['progress']);
+
+        return new self(
+            $due,
+            $needsReading,
+            $vehicles->count(),
+            array_map(
+                static fn (array $row): DueNextItem => $row['item'],
+                array_slice($ranked, 0, self::DUE_NEXT_LIMIT),
+            ),
+        );
     }
 }
