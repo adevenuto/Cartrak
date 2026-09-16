@@ -65,14 +65,14 @@ claimQuickAdd(onQuickAdd);
 
     <div
         v-else
-        class="mx-auto flex w-full max-w-6xl flex-col gap-4 px-5 pb-4 md:px-(--card-pad)"
+        class="mx-auto flex w-full max-w-[1400px] flex-col gap-(--space-6)"
     >
         <!--
             The odometer prompt used to live only on a vehicle's own page, so a
             car you never opened was never asked about — and the projection
             behind every one of its gauges quietly drifted.
         -->
-        <Card v-if="staleVehicles.length" class="border-0">
+        <Card v-if="staleVehicles.length">
             <CardContent class="flex flex-wrap items-center gap-3">
                 <Gauge class="text-accent-700 size-5 shrink-0" />
                 <p class="text-body min-w-0 flex-1">
@@ -97,7 +97,7 @@ claimQuickAdd(onQuickAdd);
         </Card>
 
         <div class="flex items-center justify-between">
-            <p class="text-muted-foreground text-sm">
+            <p class="ii-eyebrow">
                 {{ vehicles.length }}
                 {{ vehicles.length === 1 ? 'vehicle' : 'vehicles' }}
             </p>

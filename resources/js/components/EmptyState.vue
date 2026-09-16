@@ -19,17 +19,19 @@ defineProps<{
 
 <template>
     <div
-        class="mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center px-5 py-16 text-center"
+        class="mx-auto flex w-full max-w-[1400px] flex-1 flex-col items-center justify-center px-5 py-16 text-center"
     >
         <span
-            class="bg-accent-100 text-accent-700 mb-5 flex size-16 items-center justify-center rounded-full"
+            class="mb-5 flex size-16 items-center justify-center border border-(--color-divider) bg-(--color-neutral-100) text-(--color-accent-700)"
         >
-            <component :is="icon" class="size-7" />
+            <component :is="icon" class="size-7" :stroke-width="1.5" />
         </span>
 
-        <h2 class="text-h2 mb-2">{{ title }}</h2>
+        <h2 class="font-display text-h2 mb-2">{{ title }}</h2>
 
-        <p class="text-muted-foreground text-body max-w-[var(--content-max)]">
+        <p
+            class="text-body max-w-[var(--content-max)] text-pretty text-(--color-neutral-700)"
+        >
             {{ description }}
         </p>
 

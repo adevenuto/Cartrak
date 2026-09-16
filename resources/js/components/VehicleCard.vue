@@ -10,19 +10,12 @@ import { show } from '@/routes/vehicles';
 import type { GarageVehicle } from '@/types/garage';
 
 /*
- * Ported from docs/design_system/components/data/VehicleCard.jsx: white card,
- * 22px radius, name on the left with a glyph slot on the right, a
- * hairline-divided spec row beneath.
+ * A vehicle in the garage grid.
  *
- * Two departures from the kit, both deliberate:
- *   - its two-button "Rent Now / Detail" footer is rental copy left over from
- *     the screenshot the design system was derived from. The whole card is the
- *     tap target here instead.
- *   - the spec row carries the odometer, which is the number this product is
- *     actually about.
- *
- * The overall-health ring the brief wants on this card needs the two-axis
- * computation, so it arrives in Phase 2.
+ * The whole card is the tap target, so nothing inside competes for the click.
+ * The spec row carries the projected odometer, which is the number this product
+ * is actually about, and the worst gauge — nine healthy items must never dilute
+ * one overdue brake job.
  */
 const props = defineProps<{
     vehicle: GarageVehicle;
@@ -54,7 +47,9 @@ const specs = computed(() =>
             <CardContent>
                 <div class="flex items-start gap-3">
                     <div class="min-w-0 flex-1">
-                        <h3 class="text-h3 flex items-center gap-2">
+                        <h3
+                            class="font-display text-title flex items-center gap-2"
+                        >
                             <ShieldAlert
                                 v-if="vehicle.open_recall_count"
                                 class="text-accent-700 size-4 shrink-0"
@@ -68,14 +63,14 @@ const specs = computed(() =>
                         </h3>
                         <p
                             v-if="specs"
-                            class="text-muted-foreground mt-0.5 truncate text-sm"
+                            class="mt-0.5 truncate text-[13px] text-(--color-neutral-700)"
                         >
                             {{ specs }}
                         </p>
                     </div>
 
                     <span
-                        class="bg-muted text-muted-foreground flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-md"
+                        class="flex size-12 shrink-0 items-center justify-center overflow-hidden border border-(--color-divider) bg-(--color-surface) text-(--color-neutral-700)"
                         :style="
                             vehicle.photo_color
                                 ? { backgroundColor: vehicle.photo_color }
@@ -99,7 +94,7 @@ const specs = computed(() =>
                 </div>
 
                 <div
-                    class="border-border mt-4 flex items-center gap-3 border-t pt-3"
+                    class="mt-(--space-4) flex items-center gap-3 border-t border-(--color-divider) pt-(--space-3)"
                 >
                     <GaugeDial
                         class="h-[46px] w-[58px] flex-none"
@@ -109,12 +104,22 @@ const specs = computed(() =>
                     />
 
                     <div class="min-w-0 flex-1">
-                        <p v-if="vehicle.worst" class="text-title truncate">
+                        <p
+                            v-if="vehicle.worst"
+                            class="font-display truncate text-[17px] font-semibold"
+                        >
                             {{ vehicle.worst.name }}
                         </p>
-                        <p v-else class="text-title truncate">Not set up yet</p>
+                        <p
+                            v-else
+                            class="font-display truncate text-[17px] font-semibold"
+                        >
+                            Not set up yet
+                        </p>
 
-                        <p class="text-muted-foreground truncate text-sm">
+                        <p
+                            class="truncate text-[13px] text-(--color-neutral-700)"
+                        >
                             <template v-if="vehicle.worst">
                                 {{ vehicle.worst.label }}
                                 <span v-if="vehicle.due_count > 1">
@@ -127,7 +132,7 @@ const specs = computed(() =>
                             </template>
                         </p>
 
-                        <p class="text-muted-foreground truncate text-xs">
+                        <p class="ii-metadata truncate">
                             {{
                                 formatMiles(vehicle.mileage.projected_odometer)
                             }}
@@ -138,7 +143,7 @@ const specs = computed(() =>
                     </div>
 
                     <ChevronRight
-                        class="text-muted-foreground size-5 shrink-0"
+                        class="size-5 shrink-0 text-(--color-neutral-500)"
                     />
                 </div>
             </CardContent>
