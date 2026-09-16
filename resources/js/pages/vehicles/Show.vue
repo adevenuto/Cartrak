@@ -8,7 +8,7 @@ import GaugeCluster from '@/components/GaugeCluster.vue';
 import FuelBenchmarkCard from '@/components/FuelBenchmark.vue';
 import RecallAlert from '@/components/RecallAlert.vue';
 import GaugeEditDialog from '@/components/GaugeEditDialog.vue';
-import GaugeRing from '@/components/GaugeRing.vue';
+import GaugeDial from '@/components/GaugeDial.vue';
 import { Card, CardContent } from '@/components/ui/card';
 import VehicleColorDot from '@/components/VehicleColorDot.vue';
 import QuickAddSheet from '@/components/QuickAddSheet.vue';
@@ -210,7 +210,11 @@ const specs = [
                 <CardContent
                     class="flex flex-col items-center gap-3 py-6 text-center"
                 >
-                    <GaugeRing :progress="0" status="uncalibrated" :size="64" />
+                    <GaugeDial
+                        class="h-16 w-[84px]"
+                        :percent="0"
+                        status="uncalibrated"
+                    />
                     <div>
                         <p class="text-title">No gauges yet</p>
                         <p class="text-muted-foreground text-sm">

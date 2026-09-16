@@ -3,7 +3,7 @@ import { Link } from '@inertiajs/vue3';
 import { Car, ChevronRight, ShieldAlert } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import { Card, CardContent } from '@/components/ui/card';
-import GaugeRing from '@/components/GaugeRing.vue';
+import GaugeDial from '@/components/GaugeDial.vue';
 import VehicleColorDot from '@/components/VehicleColorDot.vue';
 import { formatMiles } from '@/lib/format';
 import { show } from '@/routes/vehicles';
@@ -101,11 +101,11 @@ const specs = computed(() =>
                 <div
                     class="border-border mt-4 flex items-center gap-3 border-t pt-3"
                 >
-                    <GaugeRing
-                        :progress="vehicle.worst?.progress ?? 0"
+                    <GaugeDial
+                        class="h-[46px] w-[58px] flex-none"
+                        variant="mini"
+                        :percent="(vehicle.worst?.raw_progress ?? 0) * 100"
                         :status="vehicle.worst?.status ?? 'uncalibrated'"
-                        :size="48"
-                        :thickness="5"
                     />
 
                     <div class="min-w-0 flex-1">

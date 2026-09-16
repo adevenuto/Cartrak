@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Head, Link, router, setLayoutProps } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
-import GaugeRing from '@/components/GaugeRing.vue';
+import GaugeDial from '@/components/GaugeDial.vue';
+import { SOON_THRESHOLD } from '@/lib/gauge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -79,7 +80,11 @@ function ringFor(interval: Interval): {
     return {
         progress,
         status:
-            progress >= 1 ? 'overdue' : progress >= 0.8 ? 'soon' : 'healthy',
+            progress >= 1
+                ? 'overdue'
+                : progress >= SOON_THRESHOLD
+                  ? 'soon'
+                  : 'healthy',
     };
 }
 
@@ -142,10 +147,11 @@ function submit(): void {
             <Card v-for="interval in intervals" :key="interval.id">
                 <CardContent class="flex flex-col gap-4">
                     <div class="flex items-center gap-3">
-                        <GaugeRing
-                            v-bind="ringFor(interval)"
-                            :size="56"
-                            :thickness="5"
+                        <GaugeDial
+                            class="h-[54px] w-[68px] flex-none"
+                            variant="mini"
+                            :percent="ringFor(interval).progress * 100"
+                            :status="ringFor(interval).status"
                         />
                         <div class="min-w-0">
                             <p class="text-title">{{ interval.name }}</p>

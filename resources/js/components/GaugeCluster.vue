@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { CircleQuestionMark } from '@lucide/vue';
 import { computed } from 'vue';
-import GaugeRing from '@/components/GaugeRing.vue';
+import GaugeDial from '@/components/GaugeDial.vue';
+import { gaugeInk, gaugeReadout } from '@/lib/gauge';
 import { Card, CardContent } from '@/components/ui/card';
 import type { Gauge } from '@/types/gauges';
 
@@ -43,28 +43,23 @@ const uncalibrated = computed(() =>
                     <CardContent
                         class="flex flex-col items-center gap-2 text-center"
                     >
-                        <GaugeRing
-                            :progress="gauge.progress"
+                        <GaugeDial
+                            class="h-[72px] w-[94px]"
+                            :percent="gauge.raw_progress * 100"
                             :status="gauge.status"
-                            :size="72"
+                        />
+
+                        <p
+                            class="font-display text-metric leading-none"
+                            :style="{ color: gaugeInk(gauge.status) }"
                         >
-                            <CircleQuestionMark
-                                v-if="gauge.status === 'uncalibrated'"
-                                class="text-muted-foreground size-5"
-                            />
-                            <span
-                                v-else
-                                class="text-sm font-bold"
-                                :class="
-                                    gauge.status === 'overdue' ||
-                                    gauge.status === 'due'
-                                        ? 'text-brand-on-subtle'
-                                        : 'text-foreground'
-                                "
-                            >
-                                {{ Math.round(gauge.progress * 100) }}%
-                            </span>
-                        </GaugeRing>
+                            {{
+                                gaugeReadout(
+                                    gauge.status,
+                                    gauge.raw_progress * 100,
+                                )
+                            }}
+                        </p>
 
                         <div class="w-full min-w-0">
                             <p class="text-title truncate">{{ gauge.name }}</p>
