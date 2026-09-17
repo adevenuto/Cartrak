@@ -7,10 +7,15 @@
 ## Current state — read this first
 
 **Phases 0–3 are built, and the full visual rebrand is merged into `development`**
-(PR #4). 185 tests green. `development` is well ahead of `main`.
+(PR #4). `development` is well ahead of `main`.
+
+**Going live is in progress** on Laravel Cloud, with CI on GitHub Actions and a protected
+`main`. `docs/LARAVEL_CLOUD_DEPLOYMENT.md` is the tracker — read it before touching
+deployment, CI, storage, mail or the queue, and tick its boxes as steps land.
 
 Gate everything with `composer ci:check` — Pest, PHPStan level 7, Pint, `vp check`
-(type-aware, warnings denied) and `vue-tsc`. It must be green before any commit.
+(type-aware, warnings denied) and `vue-tsc`. It must be green before any commit, and CI
+runs the same gate against MySQL on every PR into `development` or `main`.
 
 ### The design migration is done
 Tokens, fonts, the navy shell, the blueprint frame, the 240° gauge dial, the vehicle
@@ -124,6 +129,9 @@ You are building a mobile-first web application that helps people track the past
 - Styling: **follow the design system at `docs/design_system`** (see above); use its tokens/components rather than ad-hoc styles. Mobile-first and responsive is a hard requirement.
 - Billing: **Laravel Cashier (Stripe)** when we reach monetization
 - Queue/scheduler: use Laravel's queue + scheduler for periodic jobs (recall checks, reminder dispatch)
+- Hosting: **Laravel Cloud** — Laravel MySQL, a private object storage bucket for photos, a managed queue, the Cloud scheduler, and Resend for mail. Deploys by push-to-deploy on `main`.
+- CI: **GitHub Actions** (`.github/workflows/ci.yml`) — full `composer ci:check` against a MySQL service on PRs into `development` and `main`.
+- **The production filesystem is ephemeral.** Never write anything that must persist to local disk; it goes to object storage through `Storage::disk()`. Never serve a stored file with `$disk->path()` — it only resolves on a local disk.
 
 ## Product in one paragraph
 A private, single-owner "garage" of vehicles. Each vehicle shows a cluster of gauges that count down toward the next service along **two axes at once — time and mileage — surfacing whichever comes first**. The user keeps it fed with fast, mobile-friendly logging (services as multi-line shop visits, fuel-ups, expenses). Reminders arrive by email + push and deep-link back into one-tap logging. Riding the same core: recall alerts, warranty countdowns, an exportable service record, and a real cost-of-ownership picture.
@@ -206,8 +214,16 @@ over-engineering. Prefer clarity over cleverness.
 `composer ci:check` must be green before every commit. Never add Co-Authored-By or any
 Claude attribution to a commit or PR.
 
+**All changes reach `main` through a pull request.** `main` is protected and is what
+Laravel Cloud deploys, so a merge into it *is* a production release. Work on a branch off
+`development`, PR it into `development`, and cut releases as a `development` → `main` PR.
+The required check is the CI job named `Run Test Suite & Build` — rename that job and the
+branch rule silently stops enforcing.
+
 ### Picking up from here
-Phases 0–3 are done and the design migration is finished. **Phase 4 (Insights) is next.**
+Phases 0–3 are done and the design migration is finished. **Finish going live first** —
+follow `docs/LARAVEL_CLOUD_DEPLOYMENT.md` from wherever its checkboxes stop. After that,
+**Phase 4 (Insights) is next.**
 
 Two things are worth doing first, both small:
 1. **Build the pinning UI** so the three pinned gauges can be chosen — the one piece of

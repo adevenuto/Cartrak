@@ -201,6 +201,59 @@ test('a photo whose file is missing is a 404, not a 500', function () {
     $this->get(route('vehicle-photos.show', $photo))->assertNotFound();
 });
 
+test('the photo bytes are streamed from the disk', function () {
+    $photo = VehiclePhoto::factory()->for(
+        Vehicle::factory()->for($this->user),
+    )->create();
+
+    expect($this->get(route('vehicle-photos.show', $photo))->streamedContent())
+        ->toBe('fake-webp-bytes')
+        ->and($this->get(route('vehicle-photos.thumbnail', $photo))->streamedContent())
+        ->toBe('fake-webp-thumb-bytes');
+});
+
+test('a revalidation with a matching etag is a 304 with no body', function () {
+    $photo = VehiclePhoto::factory()->for(
+        Vehicle::factory()->for($this->user),
+    )->create();
+
+    $response = $this->get(
+        route('vehicle-photos.show', $photo),
+        ['If-None-Match' => '"'.$photo->ulid.'"'],
+    );
+
+    $response->assertStatus(304);
+
+    expect($response->streamedContent())->toBe('');
+});
+
+test('a revalidation still requires ownership', function () {
+    // The 304 short-circuit must not skip the owner check: a guessed ETag
+    // would otherwise confirm that a photo exists.
+    $photo = VehiclePhoto::factory()->for(Vehicle::factory())->create();
+
+    $this->get(
+        route('vehicle-photos.show', $photo),
+        ['If-None-Match' => '"'.$photo->ulid.'"'],
+    )->assertForbidden();
+});
+
+test('photos are served from whichever disk is configured', function () {
+    // In production the disk is a Laravel Cloud bucket registered under its own
+    // name, not "local". Nothing on the serving path may assume otherwise.
+    Storage::fake('photos');
+    config(['vehicles.photos.disk' => 'photos']);
+
+    $photo = VehiclePhoto::factory()->for(
+        Vehicle::factory()->for($this->user),
+    )->create();
+
+    Storage::disk('local')->assertMissing($photo->path);
+
+    expect($this->get(route('vehicle-photos.show', $photo))->streamedContent())
+        ->toBe('fake-webp-bytes');
+});
+
 test('photos are routed by ulid, not by sequential id', function () {
     $photo = VehiclePhoto::factory()->for(
         Vehicle::factory()->for($this->user),
