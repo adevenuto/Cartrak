@@ -132,6 +132,10 @@ const tiers = [
     },
 ];
 
+// Read at render rather than hard-coded, so the footer does not quietly go stale
+// on 1 January.
+const year = new Date().getFullYear();
+
 const navLinks = [
     { label: 'Gauges', href: '#gauges' },
     { label: 'How it works', href: '#how' },
@@ -619,6 +623,10 @@ const navLinks = [
                     :style="{ color: 'var(--color-bg)' }"
                 >
                     Ignition Index
+                </span>
+
+                <span class="ml-auto text-[13px]">
+                    &copy; {{ year }} Ignition Index
                 </span>
             </div>
         </footer>

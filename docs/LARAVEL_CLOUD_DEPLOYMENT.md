@@ -236,9 +236,27 @@ Only if the database connection is refused for lack of TLS:
   callback, which acquires and then releases in a `finally`, so listing the schedule can
   never hold a lock that blocks a real run.
 
+## Launch checklist
+
+The site is deliberately hidden from search engines until launch. Undoing it means
+**two** changes, in one PR:
+
+- [ ] `public/robots.txt` — change `Disallow: /` back to `Disallow:`
+- [ ] `resources/views/app.blade.php` — remove the `noindex, nofollow` meta tag
+- [ ] `tests/Feature/SearchVisibilityTest.php` — delete it; it exists to make both of
+      the above fail loudly if only one is done
+- [ ] Deploy, then confirm with `curl -s https://ignitionindex.com/robots.txt` and by
+      checking the meta tag is gone
+
+Both are needed. robots.txt stops well-behaved crawlers fetching pages; the meta tag
+stops indexing of URLs discovered some other way, such as a link from elsewhere.
+Laravel Cloud's own `X-Robots-Tag: noindex` applies only to `*.laravel.cloud` domains,
+never a custom one.
+
 ## Follow-ups
 
-- [ ] Fill in the custom domain everywhere marked `TODO`
-- [ ] Confirm Cloud's MySQL version against the CI service image
+- [x] Fill in the custom domain: `ignitionindex.com`, connected with a Google Trust
+      Services certificate; `www` redirects to the apex
+- [x] Confirm Cloud's MySQL version against the CI service image — both 8.4
 - [ ] Decide whether trusted proxies are needed (the go-live auth check answers this)
 - [ ] Consider a user-local reminder time
