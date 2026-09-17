@@ -7,10 +7,10 @@ GitHub Actions and a protected `main`. Update the checkboxes as steps land.
 
 | Phase | State |
 |---|---|
-| A. Repository changes (`live_with_cicd`) | 🟡 Code done — PR to `development` pending |
-| B. Branch protection on `main` | ⬜ Not started — needs CI to have run once |
+| A. Repository changes (`live_with_cicd`) | ✅ Done — merged into `main` (#6) and `development` (#7), CI green on both |
+| B. Branch protection on `main` | ✅ Done — ruleset active, direct push verified rejected |
 | C. Laravel Cloud setup | ⬜ Not started |
-| D. First release (`development` → `main`) | ⬜ Not started |
+| D. First release (`development` → `main`) | 🟡 Code already on `main` via #6 — no deploy yet, Cloud not connected |
 
 ## How releases work
 
@@ -60,8 +60,20 @@ Branch `live_with_cicd`, off `development`.
       `npm ci`, `npm run build` and `php artisan optimize` all succeed; dev packages are
       stripped, config and routes cache (including the closure route), and the app boots
       as `production` with debug off
-- [ ] Open PR `live_with_cicd` → `development`; **CI runs for the first time**
-- [ ] Merge once green
+- [x] Open PR `live_with_cicd` → `development`; **CI runs for the first time** — green
+- [x] Merge once green
+
+> **What actually happened.** Two PRs were open from `live_with_cicd`: #6 into `main` and #7
+> into `development`. #6 was merged first, by accident. Because the branch was cut from
+> `development`, that carried the whole rebrand plus CI into `main` — early, but only after
+> CI had passed on that exact code. #7 was then merged, so `main` and `development` hold
+> identical files. Nothing deployed, since Laravel Cloud was not yet connected.
+>
+> The two branches now differ only by PR merge commits with no file changes. That is normal
+> with GitHub's "Create a merge commit" setting and will recur on every release.
+>
+> **Lesson:** GitHub's "Compare & pull request" banner defaults the base to `main`. Check the
+> base branch before creating a PR from a feature branch.
 
 ## Phase B — Branch protection on `main`
 
@@ -70,15 +82,37 @@ CLI isn't installed, so use the web UI.
 
 GitHub → **Settings → Rules → Rulesets → New branch ruleset**:
 
-- [ ] Name `Protect main`, enforcement **Active**, target branch `main`
-- [ ] **Require a pull request before merging** (0 approvals — solo repository)
-- [ ] **Require status checks to pass** → add `Run Test Suite & Build`; require branches to
-      be up to date
-- [ ] **Block force pushes**
-- [ ] **Restrict deletions**
-- [ ] **Leave the bypass list empty.** Otherwise the repository owner can still push to
+- [x] Name `Protect Main` (ruleset id `23576332`), enforcement **Active**, target
+      `refs/heads/main`
+- [x] **Require a pull request before merging** (0 approvals — solo repository)
+- [x] **Require status checks to pass** → `Run Test Suite & Build`; require branches to be
+      up to date
+- [x] **Block force pushes**
+- [x] **Restrict deletions**
+- [x] **Leave the bypass list empty.** Otherwise the repository owner can still push to
       `main` directly, which defeats the point.
-- [ ] Verify: a direct `git push origin main` is rejected
+- [x] Verify: a direct push to `main` is rejected
+
+**How it was verified.** GitHub's rule evaluation for `main`
+(`GET /repos/adevenuto/IgnitionIndex/rules/branches/main`, public, no auth) returns
+`deletion`, `non_fast_forward`, `pull_request` (0 approvals) and `required_status_checks`
+(`Run Test Suite & Build`, strict). The bypass list is only visible to admins, so it was
+proven with a real push instead: an empty commit built on `main` and pushed by the
+repository owner was refused.
+
+```
+remote: error: GH013: Repository rule violations found for refs/heads/main.
+- Changes must be made through a pull request.
+- Required status check "Run Test Suite & Build" is expected.
+! [remote rejected] … -> main (push declined due to repository rule violations)
+```
+
+Because it was the owner's own push that was declined, nobody is on the bypass list.
+
+> **In zsh, brace the variable in a refspec** — `"${sha}:refs/heads/main"`, not
+> `"$sha:refs/heads/main"`. zsh reads `$sha:r` as its `:r` modifier and mangles the refspec,
+> so git fails locally without ever contacting GitHub. The first attempt at this test did
+> exactly that, and it looked like a pass.
 
 > The job's `name:` in `ci.yml` *is* the required check. Renaming the job silently detaches
 > the rule — change both together.
@@ -141,10 +175,14 @@ Only if the database connection is refused for lack of TLS:
 
 ## Phase D — First release
 
-- [ ] Open PR `development` → `main`. It carries the whole rebrand, so review it rather
-      than rubber-stamping it
-- [ ] CI passes → merge
-- [ ] Laravel Cloud deploys automatically — watch the build and deploy logs
+- [x] ~~Open PR `development` → `main`~~ — superseded: the rebrand and CI reached `main`
+      through #6 (see Phase A). CI passed on that code before the merge
+- [x] CI passes → merge
+- [ ] **Connect Laravel Cloud to `main` (Phase C).** Because `main` already holds the
+      release, the first deployment happens as soon as Cloud is connected — there is no
+      separate merge to trigger it. Finish the environment variables *before* the first
+      deploy, or it boots without an `APP_KEY` or mail settings
+- [ ] Laravel Cloud deploys — watch the build and deploy logs
 
 ## Go-live verification
 
