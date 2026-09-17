@@ -1,2 +1,5 @@
+# Pre-launch: keep the site out of search results entirely.
+# At launch, change Disallow to an empty value and remove the noindex meta tag
+# in resources/views/app.blade.php. See docs/LARAVEL_CLOUD_DEPLOYMENT.md.
 User-agent: *
-Disallow:
+Disallow: /

@@ -18,6 +18,12 @@
 
         <meta name="theme-color" content="#f2f2f3">
 
+        {{-- Pre-launch. robots.txt asks crawlers not to fetch the site; this asks
+             them not to index it if they do anyway, which is the half that keeps
+             it out of results. Laravel Cloud only sends X-Robots-Tag on its own
+             *.laravel.cloud domains, never a custom one. Remove both at launch. --}}
+        <meta name="robots" content="noindex, nofollow">
+
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
