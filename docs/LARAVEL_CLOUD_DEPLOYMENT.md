@@ -9,7 +9,7 @@ GitHub Actions and a protected `main`. Update the checkboxes as steps land.
 |---|---|
 | A. Repository changes (`live_with_cicd`) | ✅ Done — merged into `main` (#6) and `development` (#7), CI green on both |
 | B. Branch protection on `main` | ✅ Done — ruleset active, direct push verified rejected |
-| C. Laravel Cloud setup | ⬜ Not started |
+| C. Laravel Cloud setup | 🟡 Environment live on the Cloud domain; custom domain and mail outstanding |
 | D. First release (`development` → `main`) | 🟡 Code already on `main` via #6 — no deploy yet, Cloud not connected |
 
 ## How releases work
@@ -34,7 +34,7 @@ feature branch ──PR──▶ development ──PR──▶ main ──push�
 | Host | Laravel Cloud | Managed PHP runtime, database, storage, queue and scheduler; native push-to-deploy |
 | CI checks | Full `composer ci:check` | Pest, PHPStan L7, Pint, `vp check`, `vue-tsc` — identical to local |
 | CI scope | PRs into `main` and `development` | Feature work is tested when it lands, not only at release |
-| Database | Laravel MySQL | Matches local development; CI tests against MySQL too |
+| Database | Laravel MySQL **8.4** | Matches local development; CI tests against the same version |
 | Photos | Private object storage bucket, streamed through the app | Keeps the owner check on every request; no shareable links |
 | Queue | Managed queue | Cloud's recommended option; scales to zero; failed-jobs dashboard |
 | Mail | Resend | First-party Laravel driver, one API key |
@@ -119,29 +119,32 @@ Because it was the owner's own push that was declined, nobody is on the bypass l
 
 ## Phase C — Laravel Cloud setup
 
-- [ ] **Application:** New application → GitHub `adevenuto/IgnitionIndex` → environment
+- [x] **Application:** New application → GitHub `adevenuto/IgnitionIndex` → environment
       `production` on branch `main`, region closest to users, **push-to-deploy on**
-- [ ] **PHP version:** General settings → **8.3**
-- [ ] **App compute:** Flex size; **Scheduler** toggle **on** (Cloud then runs
+- [x] **PHP version:** General settings → **8.3** (confirmed 8.3.33 at runtime). Cloud
+      defaults new environments to 8.5, and a PHP change only applies on the **next deploy**
+- [x] **App compute:** Flex size; **Scheduler** toggle **on** (Cloud then runs
       `schedule:run` every minute). Scale-to-zero is optional — Cloud wakes the environment
       for scheduled tasks and queued jobs
-- [ ] **Database:** Add database → new **Laravel MySQL** cluster (Flex, 5 GB), database
+- [x] **Database:** Add database → new **Laravel MySQL** cluster (Flex, 5 GB), database
       `ignitionindex`. Backups: daily, 7-day retention. **Note the MySQL version** and align
       `mysql:8.0` in `ci.yml` if it differs
-- [ ] **Object storage:** Add bucket → Laravel Object Storage, visibility **Private**, disk
+- [x] **Object storage:** Add bucket → Laravel Object Storage, visibility **Private**, disk
       name `photos`, **set as default disk**
-- [ ] **Managed queue:** Add compute → Managed queue, Flex, 256 MiB, default queue
-- [ ] **Build commands:**
+- [x] **Managed queue:** Add compute → Managed queue, Flex, 256 MiB, default queue
+- [x] **Build commands:**
       ```
       composer install --no-dev --optimize-autoloader && npm ci && npm run build && php artisan optimize
       ```
-- [ ] **Deploy commands:**
+- [x] **Deploy commands:**
       ```
       php artisan migrate --force
       ```
       Don't add `queue:restart`, `storage:link` or `optimize:clear` — Cloud restarts workers
       itself, and neither of the others belongs in a deploy on Cloud.
-- [ ] **Environment variables:** see the table below
+- [x] **Environment variables:** see the table below. Verified at runtime with
+      `php artisan about`: `production`, debug off, `mysql`, `database` cache and session,
+      and queue `cloud`
 - [ ] **Resend:** add and verify the sending domain (DNS), create a production API key
 - [ ] **Custom domain:** add it in the environment, apply the DNS records, wait for SSL
 
@@ -158,17 +161,18 @@ attached. Set the rest manually.
 | `APP_NAME` | `Ignition Index` | Manual |
 | `APP_ENV` | `production` | Manual |
 | `APP_DEBUG` | `false` | Manual |
-| `APP_KEY` | output of `php artisan key:generate --show` | Manual — keep secret |
+| `APP_KEY` | — | **Injected by Cloud.** Do not set a second one |
 | `APP_URL` | `https://TODO-domain` | Manual |
 | `LOG_LEVEL` | `warning` | Manual |
 | `APP_MAINTENANCE_DRIVER` | `cache` | Manual |
 | `APP_MAINTENANCE_STORE` | `database` | Manual |
 | `SESSION_DRIVER` | `database` | Manual |
 | `CACHE_STORE` | `database` | Manual |
-| `MAIL_MAILER` | `resend` | Manual |
+| `MAIL_MAILER` | `log` → `resend` | Manual. `log` until the Resend domain is verified |
 | `RESEND_API_KEY` | from Resend | Manual — keep secret |
-| `MAIL_FROM_ADDRESS` | e.g. `hello@TODO-domain` | Manual |
+| `MAIL_FROM_ADDRESS` | e.g. `hello@ignitionindex.com` | Manual |
 | `MAIL_FROM_NAME` | `Ignition Index` | Manual |
+| `VITE_APP_NAME` | `Ignition Index` | Manual — **read at build time**, so it must exist before the build |
 
 Only if the database connection is refused for lack of TLS:
 `MYSQL_ATTR_SSL_CA=/etc/ssl/certs/ca-certificates.crt`.
@@ -213,6 +217,18 @@ Only if the database connection is refused for lack of TLS:
   value.
 - **Reminders run at 08:00 UTC** (~4am US Eastern), because the app timezone is UTC.
   Worth revisiting before real users arrive.
+- **`MAIL_MAILER=log` swallows mail entirely here.** Laravel's log mailer writes with
+  `$this->logger->debug(...)`, and `LOG_LEVEL=warning` discards that — so while mail is set
+  to `log`, a verification email is neither sent nor recorded, and a new account cannot
+  verify itself. Mark a test account verified from the Commands tab if you need one before
+  Resend is live.
+- **`APP_NAME` is baked into the JS bundle at build time** through `VITE_APP_NAME`, which
+  Vite resolves during `npm run build`. Changing the name means a **redeploy**, not a
+  restart, and the variable must exist before the build. It also decides the session cookie
+  name, so renaming logs everyone out.
+- **The DNS for `ignitionindex.com` is Namecheap BasicDNS.** Adding an MX record for a
+  subdomain (Resend uses `send`) can require switching Mail Settings to Custom MX, which
+  turns off Namecheap's email forwarding for the whole domain. Check before saving.
 - **`schedule:list` needs the database.** Cloud runs it at deploy time to work out when to
   wake a sleeping environment. Because both tasks use `withoutOverlapping()` and
   `onOneServer()`, it probes the lock in the `cache_locks` table — so it errors on a
