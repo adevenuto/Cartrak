@@ -1,0 +1,96 @@
+name: Continuous Integration
+
+# Runs on every pull request into main (the release gate, required by branch
+# protection) and into development (so feature work is tested when it lands,
+# not only at release time). Pushes to main are not tested here because main
+# only ever receives merged, already-tested pull requests — and Laravel Cloud
+# deploys it on push.
+on:
+  pull_request:
+    branches: [main, development]
+
+# A newer push to the same pull request makes the older run pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    # This name is the status check that branch protection requires. Renaming
+    # the job silently detaches the rule, so change both together.
+    name: Run Test Suite & Build
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    # Real environment variables, so they win over phpunit.xml's sqlite <env>
+    # entries: PHPUnit only applies an <env> when getenv() is false and
+    # force="true" is not set. Locally, composer ci:check keeps using sqlite.
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: testing
+      DB_USERNAME: root
+      DB_PASSWORD: root
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.3'
+          extensions: dom, curl, libxml, mbstring, zip, pdo, pdo_mysql, gd
+          tools: composer:v2
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      # The app needs an APP_KEY for anything that encrypts, and the Vite build
+      # boots artisan (Wayfinder generates route helpers during the build).
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Install NPM dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build
+
+      # Exactly what Laravel Cloud's deploy command will run, against real
+      # MySQL — so a migration that only works on sqlite fails here first.
+      - name: Run migrations
+        run: php artisan migrate --force
+
+      # The same gate as local development: Pest, PHPStan, Pint, vp check and
+      # vue-tsc.
+      - name: Run CI checks
+        run: composer ci:check

@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\VehiclePhoto;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Throwable;
 
 /**
  * Serves vehicle photos from the private disk, behind the owner check.
@@ -17,39 +19,30 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  * private, single-owner garage. The cost is one PHP boot per photo on a cold
  * cache, which the immutable cache header below reduces to once per photo per
  * browser.
+ *
+ * In production the disk is a private Laravel Cloud object storage bucket, so
+ * the bytes are read from the bucket and streamed through this controller. A
+ * temporaryUrl() redirect would take the traffic off the app, but anyone holding
+ * the link could view the photo until it expired — streaming keeps the owner
+ * check on every request.
  */
 class VehiclePhotoController extends Controller
 {
-    public function show(Request $request, VehiclePhoto $photo): BinaryFileResponse
+    public function show(Request $request, VehiclePhoto $photo): StreamedResponse
     {
         return $this->stream($request, $photo, $photo->path);
     }
 
-    public function thumbnail(Request $request, VehiclePhoto $photo): BinaryFileResponse
+    public function thumbnail(Request $request, VehiclePhoto $photo): StreamedResponse
     {
         return $this->stream($request, $photo, $photo->thumbnail_path);
     }
 
-    private function stream(Request $request, VehiclePhoto $photo, string $path): BinaryFileResponse
+    private function stream(Request $request, VehiclePhoto $photo, string $path): StreamedResponse
     {
         Gate::authorize('view', $photo->vehicle);
 
-        $disk = Storage::disk(Config::string('vehicles.photos.disk'));
-
-        // The row exists but the bytes do not — a partially-failed write, or a
-        // file removed underneath us. 404 rather than a 500.
-        abort_unless($disk->exists($path), 404);
-
-        // response()->file() rather than Storage::download()/serve(): the
-        // adapter returns a StreamedResponse with no Last-Modified, no ETag and
-        // no 304 path, which defeats the point of caching a private file.
-        // BinaryFileResponse also supports range requests and can later be
-        // offloaded to the web server via X-Sendfile without touching this code.
-        //
-        // NOTE: $disk->path() is local-adapter only. Moving photos to S3 would
-        // mean switching to a temporaryUrl() redirect, which changes the auth
-        // model — that is the migration point.
-        $response = response()->file($disk->path($path), [
+        $response = new StreamedResponse(null, 200, [
             'Content-Type' => 'image/webp',
             'X-Content-Type-Options' => 'nosniff',
         ]);
@@ -67,8 +60,47 @@ class VehiclePhotoController extends Controller
         $response->setMaxAge(604800);
         $response->headers->addCacheControlDirective('immutable');
 
-        $response->isNotModified($request);
+        // Answer a revalidation before touching storage at all. On a bucket that
+        // saves a round trip per cached photo, and the owner check above has
+        // already run.
+        if ($response->isNotModified($request)) {
+            return $response;
+        }
+
+        // The row exists but the bytes do not — a partially-failed write, or a
+        // file removed underneath us. 404 rather than a 500.
+        $stream = $this->open(
+            Storage::disk(Config::string('vehicles.photos.disk')),
+            $path,
+        );
+
+        abort_if($stream === null, 404);
+
+        $response->setCallback(function () use ($stream): void {
+            fpassthru($stream);
+            fclose($stream);
+        });
 
         return $response;
+    }
+
+    /**
+     * Open a read stream, treating a missing object as null.
+     *
+     * Deliberately not $disk->path(): that resolves to a real file only on the
+     * local adapter, and on an object storage bucket it names a key that does
+     * not exist on the application's filesystem.
+     *
+     * @return resource|null
+     */
+    private function open(Filesystem $disk, string $path)
+    {
+        try {
+            return $disk->readStream($path);
+        } catch (Throwable) {
+            // A disk configured with 'throw' => true raises instead of returning
+            // null; either way the photo is unavailable.
+            return null;
+        }
     }
 }
