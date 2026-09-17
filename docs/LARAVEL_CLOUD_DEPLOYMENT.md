@@ -56,6 +56,10 @@ Branch `live_with_cicd`, off `development`.
 - [x] Production hints in `.env.example` (comments only — CI copies this file)
 - [x] Suite verified against MySQL locally: all migrations run, 189/189 tests pass, and the
       tests were confirmed to hit MySQL rather than `phpunit.xml`'s sqlite
+- [x] Laravel Cloud's build command verified on a fresh clone: `composer install --no-dev`,
+      `npm ci`, `npm run build` and `php artisan optimize` all succeed; dev packages are
+      stripped, config and routes cache (including the closure route), and the app boots
+      as `production` with debug off
 - [ ] Open PR `live_with_cicd` → `development`; **CI runs for the first time**
 - [ ] Merge once green
 
@@ -171,6 +175,12 @@ Only if the database connection is refused for lack of TLS:
   value.
 - **Reminders run at 08:00 UTC** (~4am US Eastern), because the app timezone is UTC.
   Worth revisiting before real users arrive.
+- **`schedule:list` needs the database.** Cloud runs it at deploy time to work out when to
+  wake a sleeping environment. Because both tasks use `withoutOverlapping()` and
+  `onOneServer()`, it probes the lock in the `cache_locks` table — so it errors on a
+  machine without a database. That is harmless: the probe is `Lock::get()` with a
+  callback, which acquires and then releases in a `finally`, so listing the schedule can
+  never hold a lock that blocks a real run.
 
 ## Follow-ups
 
