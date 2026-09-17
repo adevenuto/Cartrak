@@ -6,26 +6,32 @@
 
 ## Current state — read this first
 
-**Phases 0–3 are built and on `development`.** A full visual rebrand lives on
-`concept_redesign` (17 commits ahead, pushed). 185 tests green.
+**Phases 0–3 are built, and the full visual rebrand is merged into `development`**
+(PR #4). 185 tests green. `development` is well ahead of `main`.
 
 Gate everything with `composer ci:check` — Pest, PHPStan level 7, Pint, `vp check`
 (type-aware, warnings denied) and `vue-tsc`. It must be green before any commit.
 
-### What the redesign covers
+### The design migration is done
 Tokens, fonts, the navy shell, the blueprint frame, the 240° gauge dial, the vehicle
 detail screen, the landing page, and the garage, history, settings and notifications
-screens.
+screens are all on the system.
 
-**Insights and the auth screens are the last two unmigrated areas.** Insights is the
-harder of the two: it is not in the design drop at all, and §2 forbids tinting charts,
-so its palette is a real decision (likely semantic steel/amber/rust rather than
-categorical) rather than a transcription.
+**The auth screens needed no work** — seven files, zero stale utilities. They inherit
+`AuthSimpleLayout`, which already carries the paper-ground brand mark, and the global
+token pass covered the rest.
 
-Remaining cosmetic debt: a handful of `components/ui/*` primitives still write
-`rounded-full`. They already render square via the utilities-layer override in
-`app.css`, so this is tidying, not a defect — pay it off per primitive when one is
-next touched.
+**Insights is not a migration job.** `pages/Insights.vue` is a 27-line placeholder
+rendering an `EmptyState`; Phase 4 builds it from nothing. It is also the one screen
+absent from the design drop, and §2 forbids tinting charts, so its palette is a real
+decision (likely semantic steel/amber/rust rather than categorical) rather than a
+transcription. Design it before building it.
+
+**All that remains is cosmetic debt:** seven `rounded-full` occurrences, five in
+`components/ui/*` primitives (avatar, badge, input, select) and two in
+`TwoFactorSetupModal`. Every one already renders square via the utilities-layer
+override in `app.css`, so nothing is visibly wrong — clear them per primitive when one
+is next touched.
 
 ### Known gaps (none are bugs)
 - No **pinning UI**. `position` and `is_pinned` exist, are backfilled and render, but
@@ -36,11 +42,11 @@ next touched.
 - The landing **hero has no photo**. The design calls for a garage/engine-bay shot and
   no such asset exists in the drop, so the frame carries a large dial instead. Swapping
   in an `<img>` is a one-line change; see the comment in `Welcome.vue`.
-- **Local host.** Valet derives the domain from the directory name. Once the folder is
-  renamed to `ignitionindex`, `ignitionindex.test` resolves and `.env`'s `APP_URL`
-  becomes correct on its own; run `php artisan config:clear` afterwards. Until then the
-  app answers on `cartrak.test` and reminder emails would deep-link to a dead host.
-  `DB_DATABASE=cartrak` is fine left alone — renaming it buys nothing visible.
+- **Local host is settled.** The directory is `ignitionindex`, so Valet serves
+  `ignitionindex.test` and `APP_URL` matches. `DB_DATABASE=cartrak` is deliberately
+  left alone — renaming it buys nothing visible. If the folder is ever moved again,
+  the host follows the directory name and `APP_URL` has to follow with it, or reminder
+  emails deep-link to a dead host.
 
 ## Design system (authoritative)
 `AGENTS.md` is binding and points at `docs/design_system/IGNITION-INDEX-DESIGN-SYSTEM.md`.
@@ -201,26 +207,26 @@ over-engineering. Prefer clarity over cleverness.
 Claude attribution to a commit or PR.
 
 ### Picking up from here
-Phases 0–3 are done; Phase 4 (Insights) is next on the product plan. Running in
-parallel is the **design migration**: `concept_redesign` rebuilt the shell, the gauge
-dial, the vehicle detail screen and the landing page, and the remaining screens —
-Garage, History, Insights, Settings, auth — still carry old accents.
+Phases 0–3 are done and the design migration is finished. **Phase 4 (Insights) is next.**
 
-Three sensible next moves, in any order:
+Two things are worth doing first, both small:
 1. **Build the pinning UI** so the three pinned gauges can be chosen — the one piece of
-   the gauge wall the schema supports but the interface does not expose.
-2. **Migrate the auth screens**, which should be as mechanical as garage and settings
-   were. Grep each file for `rounded-full`, `max-w-6xl`, `brand-`, `success`, `warning`
-   and raw Tailwind colours as you go — dead tokens fail silently.
-3. **Start Phase 4 (Insights)**, designing before building for the reason above.
+   the gauge wall the schema supports but the interface does not expose. Suggested home
+   is the Intervals modal, alongside interval configuration, so the schedule is managed
+   in one place.
+2. **Clear the seven remaining `rounded-full`** in `components/ui/*` and
+   `TwoFactorSetupModal` — tidying, not a defect, since the override already squares
+   them.
 
-A useful pattern from the migrations already done: most screens turned out to be ~80%
-migrated already, because zeroing the radius and shadow scales and mapping the tokens
-did the heavy lifting globally. What is left on any given screen is usually just the
-places asking for a shape the system does not have — circles, pills — plus type roles
-and width caps. Audit with a grep before assuming a screen needs real work.
+Then Phase 4. Design it before building it: the Insights surface is absent from the
+design drop, so it needs decisions rather than transcription, and §2 forbids tinting
+charts — the chart palette is the open question, likely semantic (steel on interval,
+amber due soon, rust overdue) rather than categorical. The data it needs already exists
+on the event spine; this is a presentation problem, not a modelling one.
 
-Phase 4 is worth designing before building: the Insights surface is not in the design
-drop, so it will need decisions rather than transcription — and §2 forbids tinting
-charts, so the chart palette is an open question (likely semantic steel/amber/rust
-rather than categorical).
+**A pattern worth reusing.** Every screen migrated in this project turned out to be
+~80% done already, because zeroing the radius and shadow scales and mapping the tokens
+did the work globally. What remained per screen was only the places asking for a shape
+the system does not have — circles, pills — plus type roles and width caps. The auth
+screens needed nothing at all. **Audit with a grep before assuming a screen needs real
+work**, and do not open a design question where a mechanical one will do.
