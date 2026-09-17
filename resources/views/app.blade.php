@@ -24,9 +24,13 @@
              *.laravel.cloud domains, never a custom one. Remove both at launch. --}}
         <meta name="robots" content="noindex, nofollow">
 
+        {{-- favicon.ico carries the 16/32/48 bitmaps for browsers and for the
+             address bar; the two PNGs are what modern browsers actually pick. --}}
         <link rel="icon" href="/favicon.ico" sizes="any">
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+        <link rel="manifest" href="/site.webmanifest">
 
         @fonts
 
