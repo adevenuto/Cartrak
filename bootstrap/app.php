@@ -16,13 +16,18 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withSchedule(function (Schedule $schedule): void {
+        // Both tasks are onOneServer(): Laravel Cloud runs schedule:run on every
+        // replica of the app cluster, so without it a scaled-out environment
+        // would run each task once per replica. The lock lives in the cache
+        // store, which is the database in production.
+
         // Reminders for anything due or overdue. Daily rather than hourly: the
         // things being watched move on a scale of weeks, and the dispatcher
         // dedupes per interval so a re-run cannot re-send.
-        $schedule->command('reminders:send')->dailyAt('08:00')->withoutOverlapping();
+        $schedule->command('reminders:send')->dailyAt('08:00')->withoutOverlapping()->onOneServer();
 
         // Recalls are rare and NHTSA is a free public API, so weekly is plenty.
-        $schedule->command('recalls:check')->weeklyOn(1, '03:00')->withoutOverlapping();
+        $schedule->command('recalls:check')->weeklyOn(1, '03:00')->withoutOverlapping()->onOneServer();
     })
     ->withMiddleware(function (Middleware $middleware): void {
 
