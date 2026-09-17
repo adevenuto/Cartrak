@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
 import ShellBrand from '@/components/shell/ShellBrand.vue';
 import { home } from '@/routes';
 
@@ -15,16 +14,14 @@ defineProps<{
     >
         <div class="w-full max-w-[var(--content-max)]">
             <div class="flex flex-col gap-8">
-                <div class="flex flex-col items-center gap-4">
-                    <Link
+                <div class="flex flex-col items-center gap-6">
+                    <ShellBrand
+                        ground="paper"
+                        orientation="stacked"
                         :href="home()"
-                        class="flex flex-col items-center gap-2 font-medium"
-                    >
-                        <ShellBrand ground="paper" class="mb-1" />
-                        <span class="sr-only">{{ title }}</span>
-                    </Link>
+                    />
                     <div class="space-y-2 text-center">
-                        <h1 class="text-h1">{{ title }}</h1>
+                        <h1 class="font-display text-h1">{{ title }}</h1>
                         <p class="text-muted-foreground text-body text-center">
                             {{ description }}
                         </p>
