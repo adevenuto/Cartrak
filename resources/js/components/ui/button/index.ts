@@ -37,8 +37,11 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
+        // Industry's sheet specifies accent-600 on hover, but that is #597ea3
+        // against a #5980a6 base — a three-value difference nobody can see. The
+        // next step down reads as a hover without changing the colour's identity.
         default:
-          "border-accent bg-primary text-primary-foreground hover:bg-accent-600 active:bg-accent-700",
+          "border-accent bg-primary text-primary-foreground hover:border-accent-700 hover:bg-accent-700 active:border-accent-800 active:bg-accent-800",
         destructive:
           "border-destructive bg-transparent text-destructive hover:bg-destructive/10 active:bg-destructive/18 focus-visible:ring-destructive/20",
         outline:
