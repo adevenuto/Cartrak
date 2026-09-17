@@ -2,6 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { Check } from '@lucide/vue';
 import GaugeDial from '@/components/GaugeDial.vue';
+import TheIndexFigure from '@/components/marketing/TheIndexFigure.vue';
 import ShellCheckerStrip from '@/components/shell/ShellCheckerStrip.vue';
 import { BlueprintFrame } from '@/components/ui/blueprint';
 import { gaugeColor, gaugeInk, gaugeStatusLabel } from '@/lib/gauge';
@@ -264,28 +265,24 @@ const navLinks = [
                     </div>
 
                     <!--
-                        The design drops a garage photo here. There is no such
-                        asset in the drop, and a dashed empty box on a hero
-                        reads as unfinished — so the frame carries the product's
-                        own instrument instead, which is what the headline is
-                        about. Swap in an <img> when a photo exists.
+                        Fig. 01 — the data model as an exploded isometric. It says what the
+                        headline claims (readings + intervals become gauges) in one object,
+                        and carries the Fleet tier without a second section.
                     -->
-                    <BlueprintFrame
-                        class="flex aspect-[4/3] min-h-[300px] flex-col items-center justify-center gap-2 p-(--space-8)"
-                    >
-                        <GaugeDial
-                            class="h-[220px] w-full max-w-[300px]"
-                            :percent="71"
-                            status="ok"
-                        />
-                        <p class="font-display text-readout">71%</p>
-                        <p class="font-display text-[21px]/[1.1] font-semibold">
-                            Oil &amp; filter
-                        </p>
-                        <p class="text-[13px] text-(--color-neutral-700)">
-                            1,450 mi to go
-                        </p>
-                    </BlueprintFrame>
+                    <figure class="flex flex-col gap-(--space-3)">
+                        <figcaption
+                            class="ii-eyebrow flex items-baseline gap-2.5 text-(--color-neutral-700)"
+                        >
+                            <span class="text-(--color-accent-700)"
+                                >Fig. 01</span
+                            >
+                            <span>The index</span>
+                        </figcaption>
+
+                        <BlueprintFrame class="gap-0 p-(--space-6)">
+                            <TheIndexFigure />
+                        </BlueprintFrame>
+                    </figure>
                 </div>
             </section>
 
