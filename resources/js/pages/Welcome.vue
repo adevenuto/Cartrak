@@ -173,8 +173,7 @@ const navLinks = [
                         v-for="link in navLinks"
                         :key="link.href"
                         :href="link.href"
-                        class="ease-standard transition-colors duration-[var(--dur-fast)] hover:text-(--color-bg)"
-                        :style="{ color: 'var(--shell-ink-secondary)' }"
+                        class="ease-standard text-(--shell-ink-secondary) transition-colors duration-[var(--dur-fast)] hover:text-(--color-bg)"
                     >
                         {{ link.label }}
                     </a>
@@ -183,14 +182,13 @@ const navLinks = [
                 <div class="flex items-center gap-(--space-3)">
                     <Link
                         :href="login()"
-                        class="ease-standard text-[14px] transition-colors duration-[var(--dur-fast)] hover:text-(--color-bg)"
-                        :style="{ color: 'var(--shell-ink-secondary)' }"
+                        class="ease-standard text-[14px] text-(--shell-ink-secondary) transition-colors duration-[var(--dur-fast)] hover:text-(--color-bg)"
                     >
                         Sign in
                     </Link>
                     <Link
                         :href="register()"
-                        class="font-display bg-accent hover:bg-accent-600 active:bg-accent-700 ease-standard flex h-[38px] items-center border border-(--color-accent) px-5 text-[17px] font-semibold tracking-[0.04em] uppercase transition-colors duration-[var(--dur-fast)]"
+                        class="font-display bg-accent hover:bg-accent-700 active:bg-accent-800 hover:border-accent-700 active:border-accent-800 ease-standard flex h-[38px] items-center border border-(--color-accent) px-5 text-[17px] font-semibold tracking-[0.04em] uppercase transition-colors duration-[var(--dur-fast)]"
                         :style="{ color: 'var(--color-bg)' }"
                     >
                         Start free
@@ -240,7 +238,7 @@ const navLinks = [
                         >
                             <Link
                                 :href="register()"
-                                class="font-display bg-accent hover:bg-accent-600 active:bg-accent-700 ease-standard flex h-[46px] items-center border border-(--color-accent) px-[26px] text-[19px] font-semibold tracking-[0.04em] uppercase transition-colors duration-[var(--dur-fast)]"
+                                class="font-display bg-accent hover:bg-accent-700 active:bg-accent-800 hover:border-accent-700 active:border-accent-800 ease-standard flex h-[46px] items-center border border-(--color-accent) px-[26px] text-[19px] font-semibold tracking-[0.04em] uppercase transition-colors duration-[var(--dur-fast)]"
                                 :style="{ color: 'var(--color-bg)' }"
                             >
                                 Start free
@@ -434,13 +432,13 @@ const navLinks = [
                             roll up: what is overdue today, what lands next
                             week, what it will cost.
                         </p>
+                        <!--
+                            Outlined on the reversed field, so the hover is a
+                            paper wash rather than a colour change.
+                        -->
                         <Link
                             :href="register()"
-                            class="font-display ease-standard mt-(--space-8) inline-flex h-[46px] items-center border px-[26px] text-[19px] font-semibold tracking-[0.04em] uppercase transition-colors duration-[var(--dur-fast)]"
-                            :style="{
-                                borderColor: 'rgb(242 242 243 / 0.4)',
-                                color: 'var(--color-bg)',
-                            }"
+                            class="font-display ease-standard mt-(--space-8) inline-flex h-[46px] items-center border border-[rgb(242_242_243/0.4)] px-[26px] text-[19px] font-semibold tracking-[0.04em] text-(--color-bg) uppercase transition-colors duration-[var(--dur-fast)] hover:border-[rgb(242_242_243/0.7)] hover:bg-[rgb(242_242_243/0.12)] active:bg-[rgb(242_242_243/0.2)]"
                         >
                             Talk to us about fleet
                         </Link>
@@ -576,20 +574,18 @@ const navLinks = [
                             </li>
                         </ul>
 
+                        <!--
+                            Classes, not an inline style: an inline style wins
+                            over any class selector, so a hover: utility could
+                            never override a resting colour set inline.
+                        -->
                         <Link
                             :href="register()"
                             class="font-display ease-standard mt-(--space-8) flex h-[42px] items-center justify-center border text-[18px] font-semibold tracking-[0.04em] uppercase transition-colors duration-[var(--dur-fast)]"
-                            :style="
+                            :class="
                                 tier.dark
-                                    ? {
-                                          background: 'var(--color-accent)',
-                                          borderColor: 'var(--color-accent)',
-                                          color: 'var(--shell-active-ink)',
-                                      }
-                                    : {
-                                          borderColor:
-                                              'var(--color-neutral-400)',
-                                      }
+                                    ? 'border-accent bg-accent hover:border-accent-700 hover:bg-accent-700 active:border-accent-800 active:bg-accent-800 text-(--shell-active-ink)'
+                                    : 'hover:bg-hover-surface active:bg-foreground/14 border-(--color-neutral-400) hover:border-(--color-accent)'
                             "
                         >
                             {{ tier.cta }}
