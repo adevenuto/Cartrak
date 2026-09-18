@@ -9,8 +9,8 @@ GitHub Actions and a protected `main`. Update the checkboxes as steps land.
 |---|---|
 | A. Repository changes (`live_with_cicd`) | ✅ Done — merged into `main` (#6) and `development` (#7), CI green on both |
 | B. Branch protection on `main` | ✅ Done — ruleset active, direct push verified rejected |
-| C. Laravel Cloud setup | 🟡 Environment live on the Cloud domain; custom domain and mail outstanding |
-| D. First release (`development` → `main`) | 🟡 Code already on `main` via #6 — no deploy yet, Cloud not connected |
+| C. Laravel Cloud setup | ✅ Done — live on `ignitionindex.com`, Resend verified and mail confirmed end to end |
+| D. First release (`development` → `main`) | ✅ Done — releases deploy on merge, proven several times |
 
 ## How releases work
 
@@ -37,7 +37,8 @@ feature branch ──PR──▶ development ──PR──▶ main ──push�
 | Database | Laravel MySQL **8.4** | Matches local development; CI tests against the same version |
 | Photos | Private object storage bucket, streamed through the app | Keeps the owner check on every request; no shareable links |
 | Queue | Managed queue | Cloud's recommended option; scales to zero; failed-jobs dashboard |
-| Mail | Resend | First-party Laravel driver, one API key |
+| Mail (outbound) | Resend | First-party Laravel driver, one API key. Sends from the `send` subdomain |
+| Mail (inbound) | Namecheap Private Email | Real `support@ignitionindex.com` mailbox, so app mail has a reply-to that reaches a person. Owns the apex MX/SPF |
 | Domain | Custom domain | `TODO: domain name` |
 | Environments | Production only, on `main` | Preview environments can be added later |
 | PHP | 8.3 | Matches `composer.json` (`^8.3`) and CI. Cloud defaults new environments to 8.5 — set it explicitly |
@@ -145,8 +146,11 @@ Because it was the owner's own push that was declined, nobody is on the bypass l
 - [x] **Environment variables:** see the table below. Verified at runtime with
       `php artisan about`: `production`, debug off, `mysql`, `database` cache and session,
       and queue `cloud`
-- [ ] **Resend:** add and verify the sending domain (DNS), create a production API key
-- [ ] **Custom domain:** add it in the environment, apply the DNS records, wait for SSL
+- [x] **Resend:** sending domain verified and a production API key created — see
+      "Picking up: Resend" below for the DNS layout and the traps met along the way
+- [x] **Custom domain:** `ignitionindex.com` connected, Google Trust Services certificate,
+      `www` redirects to the apex, `http` redirects to `https`. DNS is Namecheap BasicDNS:
+      two A records (apex and `www`) to `103.133.1.1`
 
 ### Production environment variables
 
@@ -170,7 +174,7 @@ attached. Set the rest manually.
 | `CACHE_STORE` | `database` | Manual |
 | `MAIL_MAILER` | `log` → `resend` | Manual. `log` until the Resend domain is verified |
 | `RESEND_API_KEY` | from Resend | Manual — keep secret |
-| `MAIL_FROM_ADDRESS` | e.g. `hello@ignitionindex.com` | Manual |
+| `MAIL_FROM_ADDRESS` | `support@ignitionindex.com` | Manual — a real Private Email mailbox, so replies land somewhere |
 | `MAIL_FROM_NAME` | `Ignition Index` | Manual |
 | `VITE_APP_NAME` | `Ignition Index` | Manual — **read at build time**, so it must exist before the build |
 
@@ -191,13 +195,17 @@ Only if the database connection is refused for lack of TLS:
 ## Go-live verification
 
 - [ ] **CI enforces:** a deliberately broken test on a throwaway branch shows red on its PR
-      and merging is blocked
-- [ ] **Protection:** a direct push to `main` is rejected
-- [ ] **Deploy:** merging to `main` starts a deployment with no manual step
-- [ ] **Assets:** pages load with styles and fonts; no 404s for `/build/*`
-- [ ] **Auth:** register → verification email arrives via Resend → the link verifies. An
-      **"Invalid signature" 403** here means Cloud's proxy isn't trusted — add
-      `$middleware->trustProxies(at: '*')` in `bootstrap/app.php`
+      and merging is blocked *(not yet exercised deliberately; CI has only ever passed)*
+- [x] **Protection:** a direct push to `main` is rejected — verified with a real push, refused
+      with `GH013`
+- [x] **Deploy:** merging to `main` starts a deployment with no manual step — confirmed by
+      shipping robots.txt, the footer, the hero figure and the favicon set, each visible on
+      the live site afterwards
+- [x] **Assets:** pages load with styles and fonts; no 404s for `/build/*`
+- [x] **Auth:** register → verification email arrives via Resend → the link verifies.
+      Confirmed 2026-09-18, twice: once on the original account and again on a fresh
+      register-delete-reregister pass. **No "Invalid signature" 403** — Cloud's proxy
+      already presents requests as `https`, so `trustProxies` is *not* needed here
 - [ ] **Photos:** upload a photo, **redeploy**, confirm it still loads — proves it lives in
       the bucket, not on the ephemeral filesystem
 - [ ] **Queue:** from the Commands tab, `php artisan reminders:send --force`; the job shows
@@ -226,15 +234,172 @@ Only if the database connection is refused for lack of TLS:
   Vite resolves during `npm run build`. Changing the name means a **redeploy**, not a
   restart, and the variable must exist before the build. It also decides the session cookie
   name, so renaming logs everyone out.
-- **The DNS for `ignitionindex.com` is Namecheap BasicDNS.** Adding an MX record for a
-  subdomain (Resend uses `send`) can require switching Mail Settings to Custom MX, which
-  turns off Namecheap's email forwarding for the whole domain. Check before saving.
+- **`main` collects empty merge commits, and GitHub will suggest reconciling them.** Each
+  `development` → `main` PR adds a merge commit that `development` never sees, so GitHub
+  offers a `main` → `development` pull request. The two branches' *files* are identical —
+  check with `git diff origin/main origin/development` before believing the banner. Ignore
+  or close that PR; merging it only adds another empty commit. Squash or rebase merges
+  would avoid it entirely.
+- **Scale to Zero is safe here but was left off for the first deploy.** The documented risk
+  is app-cluster `queue:work` processes being cut off mid-job; this environment uses a
+  managed queue, whose workers scale independently. Cloud wakes the environment for
+  scheduled tasks, and the schedule is daily/weekly, far less frequent than any sleep
+  timeout. Turning it on is an App compute toggle plus a deploy.
+- **The DNS for `ignitionindex.com` is Namecheap BasicDNS, and the apex mail records now
+  belong to Namecheap Private Email** (`mx1`/`mx2.privateemail.com`, SPF
+  `include:spf.privateemail.com`), which receives `support@ignitionindex.com`. Resend's
+  records are CNAMEs on the `send` and `rsend` subdomains and must not disturb the apex.
+  Mail Settings is on **Custom MX** with Private Email's two apex rows entered by hand;
+  switching that dropdown re-provisions apex records and has twice wiped the apex SPF.
 - **`schedule:list` needs the database.** Cloud runs it at deploy time to work out when to
   wake a sleeping environment. Because both tasks use `withoutOverlapping()` and
   `onOneServer()`, it probes the lock in the `cache_locks` table — so it errors on a
   machine without a database. That is harmless: the probe is `Lock::get()` with a
   callback, which acquires and then releases in a `finally`, so listing the schedule can
   never hold a lock that blocks a real run.
+
+## Picking up: Resend
+
+Everything else is live. Mail is the last piece, and until it works a new account can
+register but can **never verify**, so nobody can reach the garage. Password resets are
+blocked the same way — Fortify has `resetPasswords()` and `emailVerification()` enabled,
+and both go out over the mailer.
+
+**The application side is already done** (verified 2026-09-18): `resend/resend-php` is in
+`composer.json`, `config/mail.php` has the `resend` transport, and `config/services.php`
+reads `RESEND_API_KEY`. Nothing needs to be written or deployed from this repo — the
+remaining work is entirely in Namecheap, Resend and the Cloud dashboard.
+
+### Receiving mail: Namecheap Private Email
+
+The domain no longer uses Namecheap's `eforward*` email forwarding. A **Private Email**
+subscription replaced it, with `support@ignitionindex.com` as the mailbox, and its DNS is
+already live (confirmed 2026-09-18):
+
+```
+dig +short MX ignitionindex.com          → 10 mx1.privateemail.com. / 10 mx2.privateemail.com.
+dig +short TXT ignitionindex.com         → "v=spf1 include:spf.privateemail.com ~all"
+dig +short CNAME autodiscover…/autoconfig… → privateemail.com.
+```
+
+**Mail Settings is now Custom MX**, holding exactly two rows — `@ → mx1.privateemail.com`
+and `@ → mx2.privateemail.com`, priority 10 each. Do **not** switch it back to *Private
+Email* mode: that mode re-injects its own apex SPF on top of the manual one, and two SPF
+records at the same name is a permerror that breaks SPF outright.
+
+**⚠️ The apex SPF keeps disappearing.** `TXT @ = v=spf1 include:spf.privateemail.com ~all`
+was auto-managed under Private Email mode and vanished from the zone when host records
+were edited. As of 2026-09-18 it has failed to save three times — the Namecheap panel
+lists the row while both authoritative nameservers return nothing for it. This affects
+only mail sent *from* `support@`; app mail through Resend is unaffected, as it
+authenticates via `send.ignitionindex.com`. Namecheap's "Save All Changes" is a batch
+commit, so one rejected row silently discards the rest — try saving that record alone,
+and suspect a phantom Private Email SPF still held internally after the Custom MX switch.
+
+**Receiving and sending stay separate, and do not collide:**
+
+| | Host | Handles |
+|---|---|---|
+| Private Email | apex (`@`) | *Incoming* mail to `support@ignitionindex.com` |
+| Resend | `send` subdomain | *Outgoing* app mail, bounces and DKIM |
+
+Resend's MX and SPF live on `send`, not the apex, so they never touch Private Email's
+records. Only one SPF TXT may exist per host — the apex keeps `spf.privateemail.com`,
+and Resend's SPF is a separate record on `send`.
+
+### Sending mail: Resend
+
+**Resend no longer uses the SES-style MX/SPF records.** Older guides (and earlier drafts of
+this doc) said to add `MX send → feedback-smtp.<region>.amazonses.com` and
+`TXT send → v=spf1 include:amazonses.com ~all` by hand. Resend now issues **CNAMEs** that
+carry those records for it, so Resend can rotate infrastructure without a DNS change:
+
+```
+send.forge.rmta.net    MX  → feedback.forge.rmta.net
+                       TXT → v=spf1 ip4:52.3.252.119 ip4:44.222.39.36 ip4:199.249.231.0/24 ~all
+rsend.forge.rmta.net   MX  → feedback-smtp.us-east-1.amazonses.com   (legacy SES path)
+                       TXT → v=spf1 include:amazonses.com ~all
+```
+
+**No MX record is added for Resend at all.** Mail Settings stays on Custom MX holding only
+Private Email's two apex rows.
+
+**The records, as added on 2026-09-18:**
+
+| Host | Type | Value |
+|---|---|---|
+| `resend._domainkey` | TXT | `p=MIGf…` (Resend's DKIM; no `v=DKIM1;` prefix — that is how Resend issues it, and `v=` defaults to `DKIM1`) |
+| `send` | CNAME | `send.forge.rmta.net.` |
+| `rsend` | CNAME | `rsend.forge.rmta.net.` |
+| `_dmarc` | TXT | `v=DMARC1; p=none;` (optional, monitoring only) |
+
+**Two traps met while doing this, both worth remembering:**
+
+- **A CNAME cannot share a name with any other record** (RFC 1034). The old
+  `TXT send = v=spf1 include:amazonses.com ~all` had to be deleted before the `send`
+  CNAME would work.
+- **The host is `rsend`, not `resend`.** Beyond simply not resolving, a CNAME at `resend`
+  sits directly above the DKIM record at `resend._domainkey`, and no data may exist below
+  a CNAME. Namecheap served it anyway, but some resolvers refuse to — an intermittent
+  DKIM failure waiting to happen.
+
+**Namecheap's nameservers update asynchronously.** A record can read empty on `dns1`
+seconds after a save and be correct moments later. Re-query before concluding a save
+failed.
+
+**Then, in order:**
+
+- [x] Add Resend's records in Namecheap (DKIM TXT + the two CNAMEs). **Leave the apex MX
+      and apex SPF alone** — those belong to Private Email
+- [x] Verify the domain in Resend — **Verified 2026-09-18**. Confirm with
+      `dig +short TXT resend._domainkey.ignitionindex.com` and
+      `dig +short CNAME send.ignitionindex.com`
+- [ ] Re-check that receiving still works: `dig +short MX ignitionindex.com` must still
+      return both `privateemail.com` hosts, and a test message to
+      `support@ignitionindex.com` should still arrive
+- [x] Create a production API key
+
+**Verification stalled for about an hour, and that was expected.** The `rsend` host was
+first created as `resend`. While it was missing, resolvers cached the negative answer for
+the zone's SOA negative-cache TTL — `3601` seconds, the last SOA field. Until that
+expired, Resend kept reading the record as absent no matter how correct the zone was. Any
+future record fix here carries the same ~1 hour floor before a re-check can succeed.
+- [x] Set in Cloud: `MAIL_MAILER=resend`, `RESEND_API_KEY`,
+      `MAIL_FROM_ADDRESS=support@ignitionindex.com`, `MAIL_FROM_NAME="${APP_NAME}"`.
+      **Cloud's env editor does resolve `${...}` interpolation** — verified in production,
+      where `config('mail.from')` returns `name => "Ignition Index"`, not the literal
+      string. (`config/mail.php` would also fall back to `APP_NAME` if the variable were
+      omitted entirely.) No SMTP variables (`MAIL_HOST`, `MAIL_PORT`, `MAIL_ENCRYPTION`) —
+      the Resend transport is an HTTP API and reads none of them; `MAIL_ENCRYPTION` is not
+      read by Laravel 11+ at all
+- [x] **Deploy** (config is cached at build; a restart will not pick it up). Note that
+      `php artisan optimize` from the **Commands tab does not help** — that runs in a
+      separate, ephemeral container, so the config cache it writes is discarded while the
+      web replicas keep serving the cache baked at their last build. Only a redeploy
+      rebuilds what serves traffic
+- [x] Register on `https://ignitionindex.com` and confirm the verification email arrives
+      and its link verifies. **An "Invalid signature" 403 means Cloud's proxy is not
+      trusted** — add `$middleware->trustProxies(at: '*')` in `bootstrap/app.php`.
+      *Probably not needed:* probing the live site on 2026-09-18, an unauthenticated
+      `GET /settings/profile` redirected to `https://ignitionindex.com/login` — that
+      `Location` is built by `route('login')` from the incoming request, so the request
+      is resolving as `https`, which is what signed-URL validation compares against. The
+      rendered `/login` body likewise contains no `http://ignitionindex.com` URL at all.
+      Strong evidence, not proof: the load balancer could in principle rewrite a
+      `Location` header, and `asset()` URLs can come from `APP_URL` rather than the
+      request. The verification link itself is still the decisive test
+- [ ] Then the remaining go-live checks that need a verified account: upload a photo,
+      redeploy, confirm it still loads; and `php artisan reminders:send --force` from the
+      Commands tab — **still outstanding**
+
+**Careful with `MAIL_MAILER=log`:** Laravel's log mailer writes at `debug` level and
+`LOG_LEVEL` is `warning`, so while mail is set to `log` a verification email is neither
+sent nor recorded. To unblock testing before Resend is live, mark an account verified
+from the Commands tab:
+
+```
+php artisan tinker --execute="App\Models\User::where('email','YOU@example.com')->update(['email_verified_at' => now()]);"
+```
 
 ## Launch checklist
 
@@ -258,5 +423,6 @@ never a custom one.
 - [x] Fill in the custom domain: `ignitionindex.com`, connected with a Google Trust
       Services certificate; `www` redirects to the apex
 - [x] Confirm Cloud's MySQL version against the CI service image — both 8.4
-- [ ] Decide whether trusted proxies are needed (the go-live auth check answers this)
+- [x] Decide whether trusted proxies are needed — **not needed.** The go-live auth check
+      passed with no "Invalid signature" 403, confirming what live probing suggested
 - [ ] Consider a user-local reminder time
