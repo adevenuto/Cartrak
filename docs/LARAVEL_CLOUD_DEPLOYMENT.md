@@ -9,8 +9,8 @@ GitHub Actions and a protected `main`. Update the checkboxes as steps land.
 |---|---|
 | A. Repository changes (`live_with_cicd`) | ✅ Done — merged into `main` (#6) and `development` (#7), CI green on both |
 | B. Branch protection on `main` | ✅ Done — ruleset active, direct push verified rejected |
-| C. Laravel Cloud setup | 🟡 Environment live on the Cloud domain; custom domain and mail outstanding |
-| D. First release (`development` → `main`) | 🟡 Code already on `main` via #6 — no deploy yet, Cloud not connected |
+| C. Laravel Cloud setup | 🟡 Live on `ignitionindex.com`; **only Resend/mail is outstanding** |
+| D. First release (`development` → `main`) | ✅ Done — releases deploy on merge, proven several times |
 
 ## How releases work
 
@@ -145,8 +145,11 @@ Because it was the owner's own push that was declined, nobody is on the bypass l
 - [x] **Environment variables:** see the table below. Verified at runtime with
       `php artisan about`: `production`, debug off, `mysql`, `database` cache and session,
       and queue `cloud`
-- [ ] **Resend:** add and verify the sending domain (DNS), create a production API key
-- [ ] **Custom domain:** add it in the environment, apply the DNS records, wait for SSL
+- [ ] **Resend:** add and verify the sending domain (DNS), create a production API key —
+      **the only outstanding item; see "Picking up: Resend" below**
+- [x] **Custom domain:** `ignitionindex.com` connected, Google Trust Services certificate,
+      `www` redirects to the apex, `http` redirects to `https`. DNS is Namecheap BasicDNS:
+      two A records (apex and `www`) to `103.133.1.1`
 
 ### Production environment variables
 
@@ -191,10 +194,13 @@ Only if the database connection is refused for lack of TLS:
 ## Go-live verification
 
 - [ ] **CI enforces:** a deliberately broken test on a throwaway branch shows red on its PR
-      and merging is blocked
-- [ ] **Protection:** a direct push to `main` is rejected
-- [ ] **Deploy:** merging to `main` starts a deployment with no manual step
-- [ ] **Assets:** pages load with styles and fonts; no 404s for `/build/*`
+      and merging is blocked *(not yet exercised deliberately; CI has only ever passed)*
+- [x] **Protection:** a direct push to `main` is rejected — verified with a real push, refused
+      with `GH013`
+- [x] **Deploy:** merging to `main` starts a deployment with no manual step — confirmed by
+      shipping robots.txt, the footer, the hero figure and the favicon set, each visible on
+      the live site afterwards
+- [x] **Assets:** pages load with styles and fonts; no 404s for `/build/*`
 - [ ] **Auth:** register → verification email arrives via Resend → the link verifies. An
       **"Invalid signature" 403** here means Cloud's proxy isn't trusted — add
       `$middleware->trustProxies(at: '*')` in `bootstrap/app.php`
@@ -226,6 +232,17 @@ Only if the database connection is refused for lack of TLS:
   Vite resolves during `npm run build`. Changing the name means a **redeploy**, not a
   restart, and the variable must exist before the build. It also decides the session cookie
   name, so renaming logs everyone out.
+- **`main` collects empty merge commits, and GitHub will suggest reconciling them.** Each
+  `development` → `main` PR adds a merge commit that `development` never sees, so GitHub
+  offers a `main` → `development` pull request. The two branches' *files* are identical —
+  check with `git diff origin/main origin/development` before believing the banner. Ignore
+  or close that PR; merging it only adds another empty commit. Squash or rebase merges
+  would avoid it entirely.
+- **Scale to Zero is safe here but was left off for the first deploy.** The documented risk
+  is app-cluster `queue:work` processes being cut off mid-job; this environment uses a
+  managed queue, whose workers scale independently. Cloud wakes the environment for
+  scheduled tasks, and the schedule is daily/weekly, far less frequent than any sleep
+  timeout. Turning it on is an App compute toggle plus a deploy.
 - **The DNS for `ignitionindex.com` is Namecheap BasicDNS.** Adding an MX record for a
   subdomain (Resend uses `send`) can require switching Mail Settings to Custom MX, which
   turns off Namecheap's email forwarding for the whole domain. Check before saving.
@@ -235,6 +252,52 @@ Only if the database connection is refused for lack of TLS:
   machine without a database. That is harmless: the probe is `Lock::get()` with a
   callback, which acquires and then releases in a `finally`, so listing the schedule can
   never hold a lock that blocks a real run.
+
+## Picking up: Resend
+
+Everything else is live. Mail is the last piece, and until it works a new account can
+register but can **never verify**, so nobody can reach the garage.
+
+**Two answers are needed before any DNS is touched:**
+
+1. **Resend's records.** Resend → Domains → Add Domain → `ignitionindex.com`, region
+   nearest the Cloud environment. It will show roughly a DKIM `TXT resend._domainkey`,
+   an `MX send`, and an SPF `TXT send`.
+2. **Whether `@ignitionindex.com` email forwarding is in use.** Namecheap → Manage →
+   **Redirect Email**. The domain currently has five `eforward*` MX records and a
+   matching SPF, which are Namecheap's forwarding defaults.
+
+**The Namecheap trap.** Resend needs an MX record on the `send` subdomain. In Namecheap,
+adding MX records usually means switching **Mail Settings** from *Email Forwarding* to
+*Custom MX*, and that switch can disable forwarding for the whole domain. If forwarding
+is unused, this is free. If it is used, the `eforward*` records must be recreated by hand
+under Custom MX.
+
+**Then, in order:**
+
+- [ ] Add Resend's three records in Namecheap, leaving the apex MX and SPF alone
+- [ ] Verify the domain in Resend; confirm with
+      `dig +short TXT resend._domainkey.ignitionindex.com` and `dig +short MX send.ignitionindex.com`
+- [ ] Create a production API key
+- [ ] Set in Cloud: `MAIL_MAILER=resend`, `RESEND_API_KEY`, `MAIL_FROM_ADDRESS`
+      (e.g. `hello@ignitionindex.com`), `MAIL_FROM_NAME=Ignition Index`
+- [ ] **Deploy** (config is cached at build; a restart will not pick it up)
+- [ ] Register on `https://ignitionindex.com` and confirm the verification email arrives
+      and its link verifies. **An "Invalid signature" 403 means Cloud's proxy is not
+      trusted** — add `$middleware->trustProxies(at: '*')` in `bootstrap/app.php`. This is
+      the last unknown in the deployment
+- [ ] Then the remaining go-live checks that need a verified account: upload a photo,
+      redeploy, confirm it still loads; and `php artisan reminders:send --force` from the
+      Commands tab
+
+**Careful with `MAIL_MAILER=log`:** Laravel's log mailer writes at `debug` level and
+`LOG_LEVEL` is `warning`, so while mail is set to `log` a verification email is neither
+sent nor recorded. To unblock testing before Resend is live, mark an account verified
+from the Commands tab:
+
+```
+php artisan tinker --execute="App\Models\User::where('email','YOU@example.com')->update(['email_verified_at' => now()]);"
+```
 
 ## Launch checklist
 
