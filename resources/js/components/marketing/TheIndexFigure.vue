@@ -259,43 +259,6 @@ const connectors = computed(() =>
         };
     }),
 );
-
-/* ── Fleet vehicles ──────────────────────────────────────────────────────── */
-
-/*
- * Four vehicles on the ground plane, each a marked tile with an identity chip —
- * the one place a non-system colour is allowed (design doc §7), and only as a
- * chip.
- */
-const TILE = 0.17;
-const CHIP = 0.07;
-
-const vehicles = computed(() =>
-    (
-        [
-            ['#c0663a', 1.58, 1.02],
-            [ACCENT, 1.98, 1.36],
-            ['#5d5d60', 1.46, 1.58],
-            ['#c08a2e', 1.86, 1.92],
-        ] as [string, number, number][]
-    ).map(([color, x, y]) => ({
-        key: `${x}-${y}`,
-        color,
-        plate: polygon([
-            project(x - TILE, y - TILE),
-            project(x + TILE, y - TILE),
-            project(x + TILE, y + TILE),
-            project(x - TILE, y + TILE),
-        ]),
-        chip: polygon([
-            project(x - CHIP, y - CHIP, 1),
-            project(x + CHIP, y - CHIP, 1),
-            project(x + CHIP, y + CHIP, 1),
-            project(x - CHIP, y + CHIP, 1),
-        ]),
-        riser: `M${fmt(project(x, y))} L${fmt(project(x, y, 1))}`,
-    })),
-);
 </script>
 
 <template>
@@ -436,23 +399,6 @@ const vehicles = computed(() =>
             >
                 {{ input.value }}
             </text>
-        </g>
-
-        <!-- Fleet vehicles on the plane -->
-        <g v-for="vehicle in vehicles" :key="vehicle.key">
-            <polygon
-                :points="vehicle.plate"
-                :fill="PAPER"
-                stroke="rgba(29,31,32,0.35)"
-                stroke-width="1.6"
-            />
-            <polygon :points="vehicle.chip" :fill="vehicle.color" />
-            <path
-                :d="vehicle.riser"
-                stroke="rgba(29,31,32,0.25)"
-                stroke-width="1.6"
-                stroke-dasharray="3 4"
-            />
         </g>
     </svg>
 </template>
