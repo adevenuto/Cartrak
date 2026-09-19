@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import { Check } from '@lucide/vue';
 import GaugeDial from '@/components/GaugeDial.vue';
 import TheIndexFigure from '@/components/marketing/TheIndexFigure.vue';
 import ShellCheckerStrip from '@/components/shell/ShellCheckerStrip.vue';
 import { BlueprintFrame } from '@/components/ui/blueprint';
 import { gaugeColor, gaugeInk, gaugeStatusLabel } from '@/lib/gauge';
-import { login, register } from '@/routes';
+import { computed } from 'vue';
+import { garage, login, register } from '@/routes';
 import type { GaugeDisplayStatus } from '@/types/gauges';
 
 /*
@@ -137,6 +138,17 @@ const tiers = [
 // on 1 January.
 const year = new Date().getFullYear();
 
+/*
+ * A signed-in visitor still lands here from a bookmark or the logo, and the
+ * guest nav left them stranded: "Sign in" bounces them straight back out to
+ * Fortify's home and there was no way into the garage at all.
+ *
+ * `auth.user` is typed non-nullable because every other reader sits behind the
+ * auth middleware, but this page is public and it really is null for a guest.
+ */
+const page = usePage();
+const user = computed(() => page.props.auth?.user ?? null);
+
 const navLinks = [
     { label: 'Gauges', href: '#gauges' },
     { label: 'How it works', href: '#how' },
@@ -181,18 +193,28 @@ const navLinks = [
 
                 <div class="flex items-center gap-(--space-3)">
                     <Link
-                        :href="login()"
-                        class="ease-standard text-[14px] text-(--shell-ink-secondary) transition-colors duration-[var(--dur-fast)] hover:text-(--color-bg)"
-                    >
-                        Sign in
-                    </Link>
-                    <Link
-                        :href="register()"
+                        v-if="user"
+                        :href="garage()"
                         class="font-display bg-accent hover:bg-accent-700 active:bg-accent-800 hover:border-accent-700 active:border-accent-800 ease-standard flex h-[38px] items-center border border-(--color-accent) px-5 text-[17px] font-semibold tracking-[0.04em] uppercase transition-colors duration-[var(--dur-fast)]"
                         :style="{ color: 'var(--color-bg)' }"
                     >
-                        Start free
+                        Garage
                     </Link>
+                    <template v-else>
+                        <Link
+                            :href="login()"
+                            class="ease-standard text-[14px] text-(--shell-ink-secondary) transition-colors duration-[var(--dur-fast)] hover:text-(--color-bg)"
+                        >
+                            Sign in
+                        </Link>
+                        <Link
+                            :href="register()"
+                            class="font-display bg-accent hover:bg-accent-700 active:bg-accent-800 hover:border-accent-700 active:border-accent-800 ease-standard flex h-[38px] items-center border border-(--color-accent) px-5 text-[17px] font-semibold tracking-[0.04em] uppercase transition-colors duration-[var(--dur-fast)]"
+                            :style="{ color: 'var(--color-bg)' }"
+                        >
+                            Start free
+                        </Link>
+                    </template>
                 </div>
             </div>
 
